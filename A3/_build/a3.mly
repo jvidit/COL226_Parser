@@ -22,10 +22,9 @@ DESIGN a grammar for a simple expression language, taking care to enforce preced
 The language should contain the following types of expressions:  integers and booleans.
 */
 
-main:
-    IF disj_expression THEN disj_expression ELSE disj_expression FI                  { IfThenElse($2,$4,$6)}          /* $n on the rhs returns the value for nth symbol in the grammar on lhs */
-    | disj_expression EOF                                                          { $1 }   
-    | disj_expression                                                              { $1 }
+main:          /* $n on the rhs returns the value for nth symbol in the grammar on lhs */
+    disj_expression EOF                          { $1 }   
+    | disj_expression                            { $1 }
 ;
 
 disj_expression:
@@ -44,7 +43,6 @@ not_expression:
     | compare_expression                           { $1 }
 ;
 
-
 compare_expression:
     compare_expression EQ minus_expression          { Equals($1,$3)}
     | compare_expression LT minus_expression        { LessT($1,$3) }
@@ -57,13 +55,14 @@ compare_expression:
 ;
 
 minus_expression:
-    minus_expression MINUS add_expression       { Sub($1,$3) }
-    | add_expression                            { $1 }
+    minus_expression MINUS rem_expression       { Sub($1,$3) }
+    | minus_expression PLUS rem_expression      { Add($1,$3) }
+    | rem_expression                            { $1 }
 ;
 
-add_expression:
-    add_expression PLUS mult_expression         { Add($1,$3) } /* Created a tree with PLUS at root and two subtrees corresponding to left: add_expression and right: mult_expression */
-    | mult_expression                           { $1 }
+rem_expression:
+    rem_expression REM mult_expression         { Rem($1,$3) }
+    | mult_expression                            { $1 }
 ;
 
 mult_expression:
@@ -72,12 +71,7 @@ mult_expression:
 ;
 
 div_expression:
-    div_expression DIV rem_expression           { Div($1,$3) }
-    | rem_expression                            { $1 }
-;
-
-rem_expression:
-    rem_expression REM paren_expression         { Rem($1,$3) }
+    div_expression DIV abs_expression           { Div($1,$3) }
     | abs_expression                            { $1 }
 ;
 
@@ -87,36 +81,36 @@ abs_expression:
 ;
 
 neg_expression:
-    TILDA paren_expression                      { Negative($2)}
-    | paren_expression                          { $1 }
+    TILDA neg_expression                       { Negative($2)}
+    | ifte_expression                          { $1 }
 ;
 
-paren_expression:
-    LP constant RP                              { InParen($2)}
-    | constant                                  { $1 }
-;
-
-constant:
-    ID                                          { Var($1) }      /* To be interpreted as a variable name with string as tokenised */
-    | INT                                       { N($1) }      /* To be interpreted as an integer with its value as tokenised   */
-    | BOOL                                      { B($1)}
-    | LP main RP                                { $2 }
-    | proj_expression                           { $1 }
+ifte_expression:
+    IF main THEN main ELSE main FI             { IfThenElse($2,$4,$6)}
+    | proj_expression                          { $1 }
 ;
 
 proj_expression:
-    PROJ LP INT COMMA INT RP tuple_expression   { Project(($3,$5) , $7) }
+    PROJ LP INT COMMA INT RP ifte_expression   { Project(($3,$5) , $7) }
     | tuple_expression                          { $1 }
 ;
 
 tuple_expression:                              
     LP RP                                       {Tuple(0,[])}
     | LP comma_expression RP                    {Tuple(List.length ($2),$2)}
+    | constant                                  { $1 }
 ;
 
-comma_expression:                                                               /*cannot have tupes of size 1, due to confusion with Parenthesis*/
+comma_expression:                                                           /*cannot have tupes of size 1, due to confusion with Parenthesis*/
     main COMMA main                             {$1::[$3] }
     | comma_expression COMMA main               {$1@[$3]}
+;
+
+constant:
+    ID                                          { Var($1) }      /* To be interpreted as a variable name with string as tokenised */
+    | INT                                       { N($1) }      /* To be interpreted as an integer with its value as tokenised   */
+    | BOOL                                      { B($1)}
+    | LP main RP                                { InParen($2) }
 ;
 
 

@@ -1,4 +1,4 @@
-{
+  {
   open A3
   exception Not_implemented
   exception Syntax_Error
@@ -48,9 +48,25 @@ rule read = parse
    | "fi"             {FI}
    | ','              {COMMA}
    | "proj"           {PROJ}
+   | "let"            {LET}
+   | "in"             {IN}
+   | "end"            {END}
+   | "\\"             {BACKSLASH}
+   | "."              {DOT}
+   | "def"            {DEF}
+   | ";"              {SEMICOLON}
+   | ":"              {COLON}
+
+   | "Tint"           {TINT}
+   | "Tbool"          {TBOOL}
+   | "Tunit"          {TUNIT}
+
+   | "||"             {PARALLEL}
+   | "local"          {LOCAL}  
    | identifier as s  {ID(s)}
    | whitespace       {read lexbuf}
    | eof              {EOF}
    | _                {raise Syntax_Error}
+
 
 

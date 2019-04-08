@@ -1,0 +1,2249 @@
+   0  $accept : %entry% $end
+
+   1  def_parser : def_parser_temp EOF
+
+   2  def_parser_temp : parallel_list
+   3                  | seq_list
+   4                  | local_def
+
+   5  parallel_list : seq_list PARALLEL local_def
+   6                | parallel_list PARALLEL local_def
+   7                | local_def PARALLEL local_def
+
+   8  seq_list : parallel_list SEMICOLON local_def
+   9           | seq_list SEMICOLON local_def
+  10           | local_def SEMICOLON local_def
+
+  11  local_def : LOCAL def_parser_temp IN def_parser_temp END
+  12            | simple_def
+
+  13  simple_def : DEF ID COLON type_parser EQ disj_expression
+
+  14  type_parser : func_type_parser
+  15              | base_type_parser
+
+  16  func_type_parser : func_type_parser MINUS GT base_type_parser
+  17                   | base_type_parser MINUS GT base_type_parser
+
+  18  typevar_list : base_type_parser TIMES base_type_parser
+  19               | typevar_list TIMES base_type_parser
+
+  20  base_type_parser : TBOOL
+  21                   | TUNIT
+  22                   | TINT
+  23                   | LP typevar_list RP
+  24                   | LP func_type_parser RP
+
+  25  exp_parser : disj_expression EOF
+
+  26  disj_expression : disj_expression DISJ conj_expression
+  27                  | conj_expression
+
+  28  conj_expression : conj_expression CONJ not_expression
+  29                  | not_expression
+
+  30  not_expression : NOT compare_expression
+  31                 | compare_expression
+
+  32  compare_expression : compare_expression EQ minus_expression
+  33                     | compare_expression LT minus_expression
+  34                     | compare_expression GT minus_expression
+  35                     | compare_expression LT EQ minus_expression
+  36                     | compare_expression EQ LT minus_expression
+  37                     | compare_expression GT EQ minus_expression
+  38                     | compare_expression EQ GT minus_expression
+  39                     | minus_expression
+
+  40  minus_expression : minus_expression MINUS rem_expression
+  41                   | minus_expression PLUS rem_expression
+  42                   | rem_expression
+
+  43  rem_expression : rem_expression REM mult_expression
+  44                 | mult_expression
+
+  45  mult_expression : mult_expression TIMES abs_expression
+  46                  | mult_expression DIV abs_expression
+  47                  | abs_expression
+
+  48  abs_expression : ABS neg_expression
+  49                 | neg_expression
+
+  50  neg_expression : TILDA neg_expression
+  51                 | ifte_expression
+
+  52  ifte_expression : IF disj_expression THEN disj_expression ELSE disj_expression FI
+  53                  | proj_expression
+
+  54  proj_expression : PROJ LP INT COMMA INT RP ifte_expression
+  55                  | tuple_expression
+
+  56  tuple_expression : LP RP
+  57                   | LP comma_expression RP
+  58                   | f_call_expression
+
+  59  comma_expression : disj_expression COMMA disj_expression
+  60                   | comma_expression COMMA disj_expression
+
+  61  f_call_expression : f_abstract_expression LP ifte_expression RP
+  62                    | f_abstract_expression
+
+  63  f_abstract_expression : BACKSLASH ID COLON type_parser DOT let_expression
+  64                        | let_expression
+
+  65  let_expression : LET def_parser_temp IN disj_expression END
+  66                 | constant
+
+  67  constant : ID
+  68           | INT
+  69           | BOOL
+  70           | LP disj_expression RP
+
+  71  %entry% : '\001' def_parser
+  72          | '\002' exp_parser
+
+state 0
+	$accept : . %entry% $end  (0)
+
+	'\001'  shift 1
+	'\002'  shift 2
+	.  error
+
+	%entry%  goto 3
+
+
+state 1
+	%entry% : '\001' . def_parser  (71)
+
+	DEF  shift 4
+	LOCAL  shift 5
+	.  error
+
+	def_parser  goto 6
+	def_parser_temp  goto 7
+	parallel_list  goto 8
+	seq_list  goto 9
+	local_def  goto 10
+	simple_def  goto 11
+
+
+state 2
+	%entry% : '\002' . exp_parser  (72)
+
+	INT  shift 12
+	BOOL  shift 13
+	ID  shift 14
+	ABS  shift 15
+	TILDA  shift 16
+	NOT  shift 17
+	LP  shift 18
+	IF  shift 19
+	PROJ  shift 20
+	LET  shift 21
+	BACKSLASH  shift 22
+	.  error
+
+	exp_parser  goto 23
+	disj_expression  goto 24
+	conj_expression  goto 25
+	not_expression  goto 26
+	compare_expression  goto 27
+	minus_expression  goto 28
+	rem_expression  goto 29
+	mult_expression  goto 30
+	abs_expression  goto 31
+	neg_expression  goto 32
+	ifte_expression  goto 33
+	proj_expression  goto 34
+	tuple_expression  goto 35
+	f_call_expression  goto 36
+	f_abstract_expression  goto 37
+	let_expression  goto 38
+	constant  goto 39
+
+
+state 3
+	$accept : %entry% . $end  (0)
+
+	$end  accept
+
+
+state 4
+	simple_def : DEF . ID COLON type_parser EQ disj_expression  (13)
+
+	ID  shift 40
+	.  error
+
+
+state 5
+	local_def : LOCAL . def_parser_temp IN def_parser_temp END  (11)
+
+	DEF  shift 4
+	LOCAL  shift 5
+	.  error
+
+	def_parser_temp  goto 41
+	parallel_list  goto 8
+	seq_list  goto 9
+	local_def  goto 10
+	simple_def  goto 11
+
+
+state 6
+	%entry% : '\001' def_parser .  (71)
+
+	.  reduce 71
+
+
+state 7
+	def_parser : def_parser_temp . EOF  (1)
+
+	EOF  shift 42
+	.  error
+
+
+state 8
+	def_parser_temp : parallel_list .  (2)
+	parallel_list : parallel_list . PARALLEL local_def  (6)
+	seq_list : parallel_list . SEMICOLON local_def  (8)
+
+	SEMICOLON  shift 43
+	PARALLEL  shift 44
+	IN  reduce 2
+	END  reduce 2
+	EOF  reduce 2
+
+
+state 9
+	def_parser_temp : seq_list .  (3)
+	parallel_list : seq_list . PARALLEL local_def  (5)
+	seq_list : seq_list . SEMICOLON local_def  (9)
+
+	SEMICOLON  shift 45
+	PARALLEL  shift 46
+	IN  reduce 3
+	END  reduce 3
+	EOF  reduce 3
+
+
+state 10
+	def_parser_temp : local_def .  (4)
+	parallel_list : local_def . PARALLEL local_def  (7)
+	seq_list : local_def . SEMICOLON local_def  (10)
+
+	SEMICOLON  shift 47
+	PARALLEL  shift 48
+	IN  reduce 4
+	END  reduce 4
+	EOF  reduce 4
+
+
+state 11
+	local_def : simple_def .  (12)
+
+	.  reduce 12
+
+
+state 12
+	constant : INT .  (68)
+
+	.  reduce 68
+
+
+state 13
+	constant : BOOL .  (69)
+
+	.  reduce 69
+
+
+state 14
+	constant : ID .  (67)
+
+	.  reduce 67
+
+
+state 15
+	abs_expression : ABS . neg_expression  (48)
+
+	INT  shift 12
+	BOOL  shift 13
+	ID  shift 14
+	TILDA  shift 16
+	LP  shift 18
+	IF  shift 19
+	PROJ  shift 20
+	LET  shift 21
+	BACKSLASH  shift 22
+	.  error
+
+	neg_expression  goto 49
+	ifte_expression  goto 33
+	proj_expression  goto 34
+	tuple_expression  goto 35
+	f_call_expression  goto 36
+	f_abstract_expression  goto 37
+	let_expression  goto 38
+	constant  goto 39
+
+
+state 16
+	neg_expression : TILDA . neg_expression  (50)
+
+	INT  shift 12
+	BOOL  shift 13
+	ID  shift 14
+	TILDA  shift 16
+	LP  shift 18
+	IF  shift 19
+	PROJ  shift 20
+	LET  shift 21
+	BACKSLASH  shift 22
+	.  error
+
+	neg_expression  goto 50
+	ifte_expression  goto 33
+	proj_expression  goto 34
+	tuple_expression  goto 35
+	f_call_expression  goto 36
+	f_abstract_expression  goto 37
+	let_expression  goto 38
+	constant  goto 39
+
+
+state 17
+	not_expression : NOT . compare_expression  (30)
+
+	INT  shift 12
+	BOOL  shift 13
+	ID  shift 14
+	ABS  shift 15
+	TILDA  shift 16
+	LP  shift 18
+	IF  shift 19
+	PROJ  shift 20
+	LET  shift 21
+	BACKSLASH  shift 22
+	.  error
+
+	compare_expression  goto 51
+	minus_expression  goto 28
+	rem_expression  goto 29
+	mult_expression  goto 30
+	abs_expression  goto 31
+	neg_expression  goto 32
+	ifte_expression  goto 33
+	proj_expression  goto 34
+	tuple_expression  goto 35
+	f_call_expression  goto 36
+	f_abstract_expression  goto 37
+	let_expression  goto 38
+	constant  goto 39
+
+
+state 18
+	tuple_expression : LP . RP  (56)
+	tuple_expression : LP . comma_expression RP  (57)
+	constant : LP . disj_expression RP  (70)
+
+	INT  shift 12
+	BOOL  shift 13
+	ID  shift 14
+	ABS  shift 15
+	TILDA  shift 16
+	NOT  shift 17
+	LP  shift 18
+	RP  shift 52
+	IF  shift 19
+	PROJ  shift 20
+	LET  shift 21
+	BACKSLASH  shift 22
+	.  error
+
+	disj_expression  goto 53
+	conj_expression  goto 25
+	not_expression  goto 26
+	compare_expression  goto 27
+	minus_expression  goto 28
+	rem_expression  goto 29
+	mult_expression  goto 30
+	abs_expression  goto 31
+	neg_expression  goto 32
+	ifte_expression  goto 33
+	proj_expression  goto 34
+	tuple_expression  goto 35
+	comma_expression  goto 54
+	f_call_expression  goto 36
+	f_abstract_expression  goto 37
+	let_expression  goto 38
+	constant  goto 39
+
+
+state 19
+	ifte_expression : IF . disj_expression THEN disj_expression ELSE disj_expression FI  (52)
+
+	INT  shift 12
+	BOOL  shift 13
+	ID  shift 14
+	ABS  shift 15
+	TILDA  shift 16
+	NOT  shift 17
+	LP  shift 18
+	IF  shift 19
+	PROJ  shift 20
+	LET  shift 21
+	BACKSLASH  shift 22
+	.  error
+
+	disj_expression  goto 55
+	conj_expression  goto 25
+	not_expression  goto 26
+	compare_expression  goto 27
+	minus_expression  goto 28
+	rem_expression  goto 29
+	mult_expression  goto 30
+	abs_expression  goto 31
+	neg_expression  goto 32
+	ifte_expression  goto 33
+	proj_expression  goto 34
+	tuple_expression  goto 35
+	f_call_expression  goto 36
+	f_abstract_expression  goto 37
+	let_expression  goto 38
+	constant  goto 39
+
+
+state 20
+	proj_expression : PROJ . LP INT COMMA INT RP ifte_expression  (54)
+
+	LP  shift 56
+	.  error
+
+
+state 21
+	let_expression : LET . def_parser_temp IN disj_expression END  (65)
+
+	DEF  shift 4
+	LOCAL  shift 5
+	.  error
+
+	def_parser_temp  goto 57
+	parallel_list  goto 8
+	seq_list  goto 9
+	local_def  goto 10
+	simple_def  goto 11
+
+
+state 22
+	f_abstract_expression : BACKSLASH . ID COLON type_parser DOT let_expression  (63)
+
+	ID  shift 58
+	.  error
+
+
+state 23
+	%entry% : '\002' exp_parser .  (72)
+
+	.  reduce 72
+
+
+state 24
+	exp_parser : disj_expression . EOF  (25)
+	disj_expression : disj_expression . DISJ conj_expression  (26)
+
+	DISJ  shift 59
+	EOF  shift 60
+	.  error
+
+
+state 25
+	disj_expression : conj_expression .  (27)
+	conj_expression : conj_expression . CONJ not_expression  (28)
+
+	CONJ  shift 61
+	DISJ  reduce 27
+	RP  reduce 27
+	THEN  reduce 27
+	ELSE  reduce 27
+	FI  reduce 27
+	COMMA  reduce 27
+	IN  reduce 27
+	END  reduce 27
+	SEMICOLON  reduce 27
+	PARALLEL  reduce 27
+	EOF  reduce 27
+
+
+state 26
+	conj_expression : not_expression .  (29)
+
+	.  reduce 29
+
+
+state 27
+	not_expression : compare_expression .  (31)
+	compare_expression : compare_expression . EQ minus_expression  (32)
+	compare_expression : compare_expression . LT minus_expression  (33)
+	compare_expression : compare_expression . GT minus_expression  (34)
+	compare_expression : compare_expression . LT EQ minus_expression  (35)
+	compare_expression : compare_expression . EQ LT minus_expression  (36)
+	compare_expression : compare_expression . GT EQ minus_expression  (37)
+	compare_expression : compare_expression . EQ GT minus_expression  (38)
+
+	EQ  shift 62
+	GT  shift 63
+	LT  shift 64
+	CONJ  reduce 31
+	DISJ  reduce 31
+	RP  reduce 31
+	THEN  reduce 31
+	ELSE  reduce 31
+	FI  reduce 31
+	COMMA  reduce 31
+	IN  reduce 31
+	END  reduce 31
+	SEMICOLON  reduce 31
+	PARALLEL  reduce 31
+	EOF  reduce 31
+
+
+state 28
+	compare_expression : minus_expression .  (39)
+	minus_expression : minus_expression . MINUS rem_expression  (40)
+	minus_expression : minus_expression . PLUS rem_expression  (41)
+
+	PLUS  shift 65
+	MINUS  shift 66
+	CONJ  reduce 39
+	DISJ  reduce 39
+	EQ  reduce 39
+	GT  reduce 39
+	LT  reduce 39
+	RP  reduce 39
+	THEN  reduce 39
+	ELSE  reduce 39
+	FI  reduce 39
+	COMMA  reduce 39
+	IN  reduce 39
+	END  reduce 39
+	SEMICOLON  reduce 39
+	PARALLEL  reduce 39
+	EOF  reduce 39
+
+
+state 29
+	minus_expression : rem_expression .  (42)
+	rem_expression : rem_expression . REM mult_expression  (43)
+
+	REM  shift 67
+	PLUS  reduce 42
+	MINUS  reduce 42
+	CONJ  reduce 42
+	DISJ  reduce 42
+	EQ  reduce 42
+	GT  reduce 42
+	LT  reduce 42
+	RP  reduce 42
+	THEN  reduce 42
+	ELSE  reduce 42
+	FI  reduce 42
+	COMMA  reduce 42
+	IN  reduce 42
+	END  reduce 42
+	SEMICOLON  reduce 42
+	PARALLEL  reduce 42
+	EOF  reduce 42
+
+
+state 30
+	rem_expression : mult_expression .  (44)
+	mult_expression : mult_expression . TIMES abs_expression  (45)
+	mult_expression : mult_expression . DIV abs_expression  (46)
+
+	TIMES  shift 68
+	DIV  shift 69
+	PLUS  reduce 44
+	MINUS  reduce 44
+	REM  reduce 44
+	CONJ  reduce 44
+	DISJ  reduce 44
+	EQ  reduce 44
+	GT  reduce 44
+	LT  reduce 44
+	RP  reduce 44
+	THEN  reduce 44
+	ELSE  reduce 44
+	FI  reduce 44
+	COMMA  reduce 44
+	IN  reduce 44
+	END  reduce 44
+	SEMICOLON  reduce 44
+	PARALLEL  reduce 44
+	EOF  reduce 44
+
+
+state 31
+	mult_expression : abs_expression .  (47)
+
+	.  reduce 47
+
+
+state 32
+	abs_expression : neg_expression .  (49)
+
+	.  reduce 49
+
+
+state 33
+	neg_expression : ifte_expression .  (51)
+
+	.  reduce 51
+
+
+state 34
+	ifte_expression : proj_expression .  (53)
+
+	.  reduce 53
+
+
+state 35
+	proj_expression : tuple_expression .  (55)
+
+	.  reduce 55
+
+
+state 36
+	tuple_expression : f_call_expression .  (58)
+
+	.  reduce 58
+
+
+state 37
+	f_call_expression : f_abstract_expression . LP ifte_expression RP  (61)
+	f_call_expression : f_abstract_expression .  (62)
+
+	LP  shift 70
+	PLUS  reduce 62
+	MINUS  reduce 62
+	TIMES  reduce 62
+	DIV  reduce 62
+	REM  reduce 62
+	CONJ  reduce 62
+	DISJ  reduce 62
+	EQ  reduce 62
+	GT  reduce 62
+	LT  reduce 62
+	RP  reduce 62
+	THEN  reduce 62
+	ELSE  reduce 62
+	FI  reduce 62
+	COMMA  reduce 62
+	IN  reduce 62
+	END  reduce 62
+	SEMICOLON  reduce 62
+	PARALLEL  reduce 62
+	EOF  reduce 62
+
+
+state 38
+	f_abstract_expression : let_expression .  (64)
+
+	.  reduce 64
+
+
+state 39
+	let_expression : constant .  (66)
+
+	.  reduce 66
+
+
+state 40
+	simple_def : DEF ID . COLON type_parser EQ disj_expression  (13)
+
+	COLON  shift 71
+	.  error
+
+
+state 41
+	local_def : LOCAL def_parser_temp . IN def_parser_temp END  (11)
+
+	IN  shift 72
+	.  error
+
+
+state 42
+	def_parser : def_parser_temp EOF .  (1)
+
+	.  reduce 1
+
+
+state 43
+	seq_list : parallel_list SEMICOLON . local_def  (8)
+
+	DEF  shift 4
+	LOCAL  shift 5
+	.  error
+
+	local_def  goto 73
+	simple_def  goto 11
+
+
+state 44
+	parallel_list : parallel_list PARALLEL . local_def  (6)
+
+	DEF  shift 4
+	LOCAL  shift 5
+	.  error
+
+	local_def  goto 74
+	simple_def  goto 11
+
+
+state 45
+	seq_list : seq_list SEMICOLON . local_def  (9)
+
+	DEF  shift 4
+	LOCAL  shift 5
+	.  error
+
+	local_def  goto 75
+	simple_def  goto 11
+
+
+state 46
+	parallel_list : seq_list PARALLEL . local_def  (5)
+
+	DEF  shift 4
+	LOCAL  shift 5
+	.  error
+
+	local_def  goto 76
+	simple_def  goto 11
+
+
+state 47
+	seq_list : local_def SEMICOLON . local_def  (10)
+
+	DEF  shift 4
+	LOCAL  shift 5
+	.  error
+
+	local_def  goto 77
+	simple_def  goto 11
+
+
+state 48
+	parallel_list : local_def PARALLEL . local_def  (7)
+
+	DEF  shift 4
+	LOCAL  shift 5
+	.  error
+
+	local_def  goto 78
+	simple_def  goto 11
+
+
+state 49
+	abs_expression : ABS neg_expression .  (48)
+
+	.  reduce 48
+
+
+state 50
+	neg_expression : TILDA neg_expression .  (50)
+
+	.  reduce 50
+
+
+state 51
+	not_expression : NOT compare_expression .  (30)
+	compare_expression : compare_expression . EQ minus_expression  (32)
+	compare_expression : compare_expression . LT minus_expression  (33)
+	compare_expression : compare_expression . GT minus_expression  (34)
+	compare_expression : compare_expression . LT EQ minus_expression  (35)
+	compare_expression : compare_expression . EQ LT minus_expression  (36)
+	compare_expression : compare_expression . GT EQ minus_expression  (37)
+	compare_expression : compare_expression . EQ GT minus_expression  (38)
+
+	EQ  shift 62
+	GT  shift 63
+	LT  shift 64
+	CONJ  reduce 30
+	DISJ  reduce 30
+	RP  reduce 30
+	THEN  reduce 30
+	ELSE  reduce 30
+	FI  reduce 30
+	COMMA  reduce 30
+	IN  reduce 30
+	END  reduce 30
+	SEMICOLON  reduce 30
+	PARALLEL  reduce 30
+	EOF  reduce 30
+
+
+state 52
+	tuple_expression : LP RP .  (56)
+
+	.  reduce 56
+
+
+state 53
+	disj_expression : disj_expression . DISJ conj_expression  (26)
+	comma_expression : disj_expression . COMMA disj_expression  (59)
+	constant : LP disj_expression . RP  (70)
+
+	DISJ  shift 59
+	RP  shift 79
+	COMMA  shift 80
+	.  error
+
+
+state 54
+	tuple_expression : LP comma_expression . RP  (57)
+	comma_expression : comma_expression . COMMA disj_expression  (60)
+
+	RP  shift 81
+	COMMA  shift 82
+	.  error
+
+
+state 55
+	disj_expression : disj_expression . DISJ conj_expression  (26)
+	ifte_expression : IF disj_expression . THEN disj_expression ELSE disj_expression FI  (52)
+
+	DISJ  shift 59
+	THEN  shift 83
+	.  error
+
+
+state 56
+	proj_expression : PROJ LP . INT COMMA INT RP ifte_expression  (54)
+
+	INT  shift 84
+	.  error
+
+
+state 57
+	let_expression : LET def_parser_temp . IN disj_expression END  (65)
+
+	IN  shift 85
+	.  error
+
+
+state 58
+	f_abstract_expression : BACKSLASH ID . COLON type_parser DOT let_expression  (63)
+
+	COLON  shift 86
+	.  error
+
+
+state 59
+	disj_expression : disj_expression DISJ . conj_expression  (26)
+
+	INT  shift 12
+	BOOL  shift 13
+	ID  shift 14
+	ABS  shift 15
+	TILDA  shift 16
+	NOT  shift 17
+	LP  shift 18
+	IF  shift 19
+	PROJ  shift 20
+	LET  shift 21
+	BACKSLASH  shift 22
+	.  error
+
+	conj_expression  goto 87
+	not_expression  goto 26
+	compare_expression  goto 27
+	minus_expression  goto 28
+	rem_expression  goto 29
+	mult_expression  goto 30
+	abs_expression  goto 31
+	neg_expression  goto 32
+	ifte_expression  goto 33
+	proj_expression  goto 34
+	tuple_expression  goto 35
+	f_call_expression  goto 36
+	f_abstract_expression  goto 37
+	let_expression  goto 38
+	constant  goto 39
+
+
+state 60
+	exp_parser : disj_expression EOF .  (25)
+
+	.  reduce 25
+
+
+state 61
+	conj_expression : conj_expression CONJ . not_expression  (28)
+
+	INT  shift 12
+	BOOL  shift 13
+	ID  shift 14
+	ABS  shift 15
+	TILDA  shift 16
+	NOT  shift 17
+	LP  shift 18
+	IF  shift 19
+	PROJ  shift 20
+	LET  shift 21
+	BACKSLASH  shift 22
+	.  error
+
+	not_expression  goto 88
+	compare_expression  goto 27
+	minus_expression  goto 28
+	rem_expression  goto 29
+	mult_expression  goto 30
+	abs_expression  goto 31
+	neg_expression  goto 32
+	ifte_expression  goto 33
+	proj_expression  goto 34
+	tuple_expression  goto 35
+	f_call_expression  goto 36
+	f_abstract_expression  goto 37
+	let_expression  goto 38
+	constant  goto 39
+
+
+state 62
+	compare_expression : compare_expression EQ . minus_expression  (32)
+	compare_expression : compare_expression EQ . LT minus_expression  (36)
+	compare_expression : compare_expression EQ . GT minus_expression  (38)
+
+	INT  shift 12
+	BOOL  shift 13
+	ID  shift 14
+	ABS  shift 15
+	TILDA  shift 16
+	GT  shift 89
+	LT  shift 90
+	LP  shift 18
+	IF  shift 19
+	PROJ  shift 20
+	LET  shift 21
+	BACKSLASH  shift 22
+	.  error
+
+	minus_expression  goto 91
+	rem_expression  goto 29
+	mult_expression  goto 30
+	abs_expression  goto 31
+	neg_expression  goto 32
+	ifte_expression  goto 33
+	proj_expression  goto 34
+	tuple_expression  goto 35
+	f_call_expression  goto 36
+	f_abstract_expression  goto 37
+	let_expression  goto 38
+	constant  goto 39
+
+
+state 63
+	compare_expression : compare_expression GT . minus_expression  (34)
+	compare_expression : compare_expression GT . EQ minus_expression  (37)
+
+	INT  shift 12
+	BOOL  shift 13
+	ID  shift 14
+	ABS  shift 15
+	TILDA  shift 16
+	EQ  shift 92
+	LP  shift 18
+	IF  shift 19
+	PROJ  shift 20
+	LET  shift 21
+	BACKSLASH  shift 22
+	.  error
+
+	minus_expression  goto 93
+	rem_expression  goto 29
+	mult_expression  goto 30
+	abs_expression  goto 31
+	neg_expression  goto 32
+	ifte_expression  goto 33
+	proj_expression  goto 34
+	tuple_expression  goto 35
+	f_call_expression  goto 36
+	f_abstract_expression  goto 37
+	let_expression  goto 38
+	constant  goto 39
+
+
+state 64
+	compare_expression : compare_expression LT . minus_expression  (33)
+	compare_expression : compare_expression LT . EQ minus_expression  (35)
+
+	INT  shift 12
+	BOOL  shift 13
+	ID  shift 14
+	ABS  shift 15
+	TILDA  shift 16
+	EQ  shift 94
+	LP  shift 18
+	IF  shift 19
+	PROJ  shift 20
+	LET  shift 21
+	BACKSLASH  shift 22
+	.  error
+
+	minus_expression  goto 95
+	rem_expression  goto 29
+	mult_expression  goto 30
+	abs_expression  goto 31
+	neg_expression  goto 32
+	ifte_expression  goto 33
+	proj_expression  goto 34
+	tuple_expression  goto 35
+	f_call_expression  goto 36
+	f_abstract_expression  goto 37
+	let_expression  goto 38
+	constant  goto 39
+
+
+state 65
+	minus_expression : minus_expression PLUS . rem_expression  (41)
+
+	INT  shift 12
+	BOOL  shift 13
+	ID  shift 14
+	ABS  shift 15
+	TILDA  shift 16
+	LP  shift 18
+	IF  shift 19
+	PROJ  shift 20
+	LET  shift 21
+	BACKSLASH  shift 22
+	.  error
+
+	rem_expression  goto 96
+	mult_expression  goto 30
+	abs_expression  goto 31
+	neg_expression  goto 32
+	ifte_expression  goto 33
+	proj_expression  goto 34
+	tuple_expression  goto 35
+	f_call_expression  goto 36
+	f_abstract_expression  goto 37
+	let_expression  goto 38
+	constant  goto 39
+
+
+state 66
+	minus_expression : minus_expression MINUS . rem_expression  (40)
+
+	INT  shift 12
+	BOOL  shift 13
+	ID  shift 14
+	ABS  shift 15
+	TILDA  shift 16
+	LP  shift 18
+	IF  shift 19
+	PROJ  shift 20
+	LET  shift 21
+	BACKSLASH  shift 22
+	.  error
+
+	rem_expression  goto 97
+	mult_expression  goto 30
+	abs_expression  goto 31
+	neg_expression  goto 32
+	ifte_expression  goto 33
+	proj_expression  goto 34
+	tuple_expression  goto 35
+	f_call_expression  goto 36
+	f_abstract_expression  goto 37
+	let_expression  goto 38
+	constant  goto 39
+
+
+state 67
+	rem_expression : rem_expression REM . mult_expression  (43)
+
+	INT  shift 12
+	BOOL  shift 13
+	ID  shift 14
+	ABS  shift 15
+	TILDA  shift 16
+	LP  shift 18
+	IF  shift 19
+	PROJ  shift 20
+	LET  shift 21
+	BACKSLASH  shift 22
+	.  error
+
+	mult_expression  goto 98
+	abs_expression  goto 31
+	neg_expression  goto 32
+	ifte_expression  goto 33
+	proj_expression  goto 34
+	tuple_expression  goto 35
+	f_call_expression  goto 36
+	f_abstract_expression  goto 37
+	let_expression  goto 38
+	constant  goto 39
+
+
+state 68
+	mult_expression : mult_expression TIMES . abs_expression  (45)
+
+	INT  shift 12
+	BOOL  shift 13
+	ID  shift 14
+	ABS  shift 15
+	TILDA  shift 16
+	LP  shift 18
+	IF  shift 19
+	PROJ  shift 20
+	LET  shift 21
+	BACKSLASH  shift 22
+	.  error
+
+	abs_expression  goto 99
+	neg_expression  goto 32
+	ifte_expression  goto 33
+	proj_expression  goto 34
+	tuple_expression  goto 35
+	f_call_expression  goto 36
+	f_abstract_expression  goto 37
+	let_expression  goto 38
+	constant  goto 39
+
+
+state 69
+	mult_expression : mult_expression DIV . abs_expression  (46)
+
+	INT  shift 12
+	BOOL  shift 13
+	ID  shift 14
+	ABS  shift 15
+	TILDA  shift 16
+	LP  shift 18
+	IF  shift 19
+	PROJ  shift 20
+	LET  shift 21
+	BACKSLASH  shift 22
+	.  error
+
+	abs_expression  goto 100
+	neg_expression  goto 32
+	ifte_expression  goto 33
+	proj_expression  goto 34
+	tuple_expression  goto 35
+	f_call_expression  goto 36
+	f_abstract_expression  goto 37
+	let_expression  goto 38
+	constant  goto 39
+
+
+state 70
+	f_call_expression : f_abstract_expression LP . ifte_expression RP  (61)
+
+	INT  shift 12
+	BOOL  shift 13
+	ID  shift 14
+	LP  shift 18
+	IF  shift 19
+	PROJ  shift 20
+	LET  shift 21
+	BACKSLASH  shift 22
+	.  error
+
+	ifte_expression  goto 101
+	proj_expression  goto 34
+	tuple_expression  goto 35
+	f_call_expression  goto 36
+	f_abstract_expression  goto 37
+	let_expression  goto 38
+	constant  goto 39
+
+
+state 71
+	simple_def : DEF ID COLON . type_parser EQ disj_expression  (13)
+
+	LP  shift 102
+	TINT  shift 103
+	TBOOL  shift 104
+	TUNIT  shift 105
+	.  error
+
+	type_parser  goto 106
+	func_type_parser  goto 107
+	base_type_parser  goto 108
+
+
+state 72
+	local_def : LOCAL def_parser_temp IN . def_parser_temp END  (11)
+
+	DEF  shift 4
+	LOCAL  shift 5
+	.  error
+
+	def_parser_temp  goto 109
+	parallel_list  goto 8
+	seq_list  goto 9
+	local_def  goto 10
+	simple_def  goto 11
+
+
+state 73
+	seq_list : parallel_list SEMICOLON local_def .  (8)
+
+	.  reduce 8
+
+
+state 74
+	parallel_list : parallel_list PARALLEL local_def .  (6)
+
+	.  reduce 6
+
+
+state 75
+	seq_list : seq_list SEMICOLON local_def .  (9)
+
+	.  reduce 9
+
+
+state 76
+	parallel_list : seq_list PARALLEL local_def .  (5)
+
+	.  reduce 5
+
+
+state 77
+	seq_list : local_def SEMICOLON local_def .  (10)
+
+	.  reduce 10
+
+
+state 78
+	parallel_list : local_def PARALLEL local_def .  (7)
+
+	.  reduce 7
+
+
+state 79
+	constant : LP disj_expression RP .  (70)
+
+	.  reduce 70
+
+
+state 80
+	comma_expression : disj_expression COMMA . disj_expression  (59)
+
+	INT  shift 12
+	BOOL  shift 13
+	ID  shift 14
+	ABS  shift 15
+	TILDA  shift 16
+	NOT  shift 17
+	LP  shift 18
+	IF  shift 19
+	PROJ  shift 20
+	LET  shift 21
+	BACKSLASH  shift 22
+	.  error
+
+	disj_expression  goto 110
+	conj_expression  goto 25
+	not_expression  goto 26
+	compare_expression  goto 27
+	minus_expression  goto 28
+	rem_expression  goto 29
+	mult_expression  goto 30
+	abs_expression  goto 31
+	neg_expression  goto 32
+	ifte_expression  goto 33
+	proj_expression  goto 34
+	tuple_expression  goto 35
+	f_call_expression  goto 36
+	f_abstract_expression  goto 37
+	let_expression  goto 38
+	constant  goto 39
+
+
+state 81
+	tuple_expression : LP comma_expression RP .  (57)
+
+	.  reduce 57
+
+
+state 82
+	comma_expression : comma_expression COMMA . disj_expression  (60)
+
+	INT  shift 12
+	BOOL  shift 13
+	ID  shift 14
+	ABS  shift 15
+	TILDA  shift 16
+	NOT  shift 17
+	LP  shift 18
+	IF  shift 19
+	PROJ  shift 20
+	LET  shift 21
+	BACKSLASH  shift 22
+	.  error
+
+	disj_expression  goto 111
+	conj_expression  goto 25
+	not_expression  goto 26
+	compare_expression  goto 27
+	minus_expression  goto 28
+	rem_expression  goto 29
+	mult_expression  goto 30
+	abs_expression  goto 31
+	neg_expression  goto 32
+	ifte_expression  goto 33
+	proj_expression  goto 34
+	tuple_expression  goto 35
+	f_call_expression  goto 36
+	f_abstract_expression  goto 37
+	let_expression  goto 38
+	constant  goto 39
+
+
+state 83
+	ifte_expression : IF disj_expression THEN . disj_expression ELSE disj_expression FI  (52)
+
+	INT  shift 12
+	BOOL  shift 13
+	ID  shift 14
+	ABS  shift 15
+	TILDA  shift 16
+	NOT  shift 17
+	LP  shift 18
+	IF  shift 19
+	PROJ  shift 20
+	LET  shift 21
+	BACKSLASH  shift 22
+	.  error
+
+	disj_expression  goto 112
+	conj_expression  goto 25
+	not_expression  goto 26
+	compare_expression  goto 27
+	minus_expression  goto 28
+	rem_expression  goto 29
+	mult_expression  goto 30
+	abs_expression  goto 31
+	neg_expression  goto 32
+	ifte_expression  goto 33
+	proj_expression  goto 34
+	tuple_expression  goto 35
+	f_call_expression  goto 36
+	f_abstract_expression  goto 37
+	let_expression  goto 38
+	constant  goto 39
+
+
+state 84
+	proj_expression : PROJ LP INT . COMMA INT RP ifte_expression  (54)
+
+	COMMA  shift 113
+	.  error
+
+
+state 85
+	let_expression : LET def_parser_temp IN . disj_expression END  (65)
+
+	INT  shift 12
+	BOOL  shift 13
+	ID  shift 14
+	ABS  shift 15
+	TILDA  shift 16
+	NOT  shift 17
+	LP  shift 18
+	IF  shift 19
+	PROJ  shift 20
+	LET  shift 21
+	BACKSLASH  shift 22
+	.  error
+
+	disj_expression  goto 114
+	conj_expression  goto 25
+	not_expression  goto 26
+	compare_expression  goto 27
+	minus_expression  goto 28
+	rem_expression  goto 29
+	mult_expression  goto 30
+	abs_expression  goto 31
+	neg_expression  goto 32
+	ifte_expression  goto 33
+	proj_expression  goto 34
+	tuple_expression  goto 35
+	f_call_expression  goto 36
+	f_abstract_expression  goto 37
+	let_expression  goto 38
+	constant  goto 39
+
+
+state 86
+	f_abstract_expression : BACKSLASH ID COLON . type_parser DOT let_expression  (63)
+
+	LP  shift 102
+	TINT  shift 103
+	TBOOL  shift 104
+	TUNIT  shift 105
+	.  error
+
+	type_parser  goto 115
+	func_type_parser  goto 107
+	base_type_parser  goto 108
+
+
+state 87
+	disj_expression : disj_expression DISJ conj_expression .  (26)
+	conj_expression : conj_expression . CONJ not_expression  (28)
+
+	CONJ  shift 61
+	DISJ  reduce 26
+	RP  reduce 26
+	THEN  reduce 26
+	ELSE  reduce 26
+	FI  reduce 26
+	COMMA  reduce 26
+	IN  reduce 26
+	END  reduce 26
+	SEMICOLON  reduce 26
+	PARALLEL  reduce 26
+	EOF  reduce 26
+
+
+state 88
+	conj_expression : conj_expression CONJ not_expression .  (28)
+
+	.  reduce 28
+
+
+state 89
+	compare_expression : compare_expression EQ GT . minus_expression  (38)
+
+	INT  shift 12
+	BOOL  shift 13
+	ID  shift 14
+	ABS  shift 15
+	TILDA  shift 16
+	LP  shift 18
+	IF  shift 19
+	PROJ  shift 20
+	LET  shift 21
+	BACKSLASH  shift 22
+	.  error
+
+	minus_expression  goto 116
+	rem_expression  goto 29
+	mult_expression  goto 30
+	abs_expression  goto 31
+	neg_expression  goto 32
+	ifte_expression  goto 33
+	proj_expression  goto 34
+	tuple_expression  goto 35
+	f_call_expression  goto 36
+	f_abstract_expression  goto 37
+	let_expression  goto 38
+	constant  goto 39
+
+
+state 90
+	compare_expression : compare_expression EQ LT . minus_expression  (36)
+
+	INT  shift 12
+	BOOL  shift 13
+	ID  shift 14
+	ABS  shift 15
+	TILDA  shift 16
+	LP  shift 18
+	IF  shift 19
+	PROJ  shift 20
+	LET  shift 21
+	BACKSLASH  shift 22
+	.  error
+
+	minus_expression  goto 117
+	rem_expression  goto 29
+	mult_expression  goto 30
+	abs_expression  goto 31
+	neg_expression  goto 32
+	ifte_expression  goto 33
+	proj_expression  goto 34
+	tuple_expression  goto 35
+	f_call_expression  goto 36
+	f_abstract_expression  goto 37
+	let_expression  goto 38
+	constant  goto 39
+
+
+state 91
+	compare_expression : compare_expression EQ minus_expression .  (32)
+	minus_expression : minus_expression . MINUS rem_expression  (40)
+	minus_expression : minus_expression . PLUS rem_expression  (41)
+
+	PLUS  shift 65
+	MINUS  shift 66
+	CONJ  reduce 32
+	DISJ  reduce 32
+	EQ  reduce 32
+	GT  reduce 32
+	LT  reduce 32
+	RP  reduce 32
+	THEN  reduce 32
+	ELSE  reduce 32
+	FI  reduce 32
+	COMMA  reduce 32
+	IN  reduce 32
+	END  reduce 32
+	SEMICOLON  reduce 32
+	PARALLEL  reduce 32
+	EOF  reduce 32
+
+
+state 92
+	compare_expression : compare_expression GT EQ . minus_expression  (37)
+
+	INT  shift 12
+	BOOL  shift 13
+	ID  shift 14
+	ABS  shift 15
+	TILDA  shift 16
+	LP  shift 18
+	IF  shift 19
+	PROJ  shift 20
+	LET  shift 21
+	BACKSLASH  shift 22
+	.  error
+
+	minus_expression  goto 118
+	rem_expression  goto 29
+	mult_expression  goto 30
+	abs_expression  goto 31
+	neg_expression  goto 32
+	ifte_expression  goto 33
+	proj_expression  goto 34
+	tuple_expression  goto 35
+	f_call_expression  goto 36
+	f_abstract_expression  goto 37
+	let_expression  goto 38
+	constant  goto 39
+
+
+state 93
+	compare_expression : compare_expression GT minus_expression .  (34)
+	minus_expression : minus_expression . MINUS rem_expression  (40)
+	minus_expression : minus_expression . PLUS rem_expression  (41)
+
+	PLUS  shift 65
+	MINUS  shift 66
+	CONJ  reduce 34
+	DISJ  reduce 34
+	EQ  reduce 34
+	GT  reduce 34
+	LT  reduce 34
+	RP  reduce 34
+	THEN  reduce 34
+	ELSE  reduce 34
+	FI  reduce 34
+	COMMA  reduce 34
+	IN  reduce 34
+	END  reduce 34
+	SEMICOLON  reduce 34
+	PARALLEL  reduce 34
+	EOF  reduce 34
+
+
+state 94
+	compare_expression : compare_expression LT EQ . minus_expression  (35)
+
+	INT  shift 12
+	BOOL  shift 13
+	ID  shift 14
+	ABS  shift 15
+	TILDA  shift 16
+	LP  shift 18
+	IF  shift 19
+	PROJ  shift 20
+	LET  shift 21
+	BACKSLASH  shift 22
+	.  error
+
+	minus_expression  goto 119
+	rem_expression  goto 29
+	mult_expression  goto 30
+	abs_expression  goto 31
+	neg_expression  goto 32
+	ifte_expression  goto 33
+	proj_expression  goto 34
+	tuple_expression  goto 35
+	f_call_expression  goto 36
+	f_abstract_expression  goto 37
+	let_expression  goto 38
+	constant  goto 39
+
+
+state 95
+	compare_expression : compare_expression LT minus_expression .  (33)
+	minus_expression : minus_expression . MINUS rem_expression  (40)
+	minus_expression : minus_expression . PLUS rem_expression  (41)
+
+	PLUS  shift 65
+	MINUS  shift 66
+	CONJ  reduce 33
+	DISJ  reduce 33
+	EQ  reduce 33
+	GT  reduce 33
+	LT  reduce 33
+	RP  reduce 33
+	THEN  reduce 33
+	ELSE  reduce 33
+	FI  reduce 33
+	COMMA  reduce 33
+	IN  reduce 33
+	END  reduce 33
+	SEMICOLON  reduce 33
+	PARALLEL  reduce 33
+	EOF  reduce 33
+
+
+state 96
+	minus_expression : minus_expression PLUS rem_expression .  (41)
+	rem_expression : rem_expression . REM mult_expression  (43)
+
+	REM  shift 67
+	PLUS  reduce 41
+	MINUS  reduce 41
+	CONJ  reduce 41
+	DISJ  reduce 41
+	EQ  reduce 41
+	GT  reduce 41
+	LT  reduce 41
+	RP  reduce 41
+	THEN  reduce 41
+	ELSE  reduce 41
+	FI  reduce 41
+	COMMA  reduce 41
+	IN  reduce 41
+	END  reduce 41
+	SEMICOLON  reduce 41
+	PARALLEL  reduce 41
+	EOF  reduce 41
+
+
+state 97
+	minus_expression : minus_expression MINUS rem_expression .  (40)
+	rem_expression : rem_expression . REM mult_expression  (43)
+
+	REM  shift 67
+	PLUS  reduce 40
+	MINUS  reduce 40
+	CONJ  reduce 40
+	DISJ  reduce 40
+	EQ  reduce 40
+	GT  reduce 40
+	LT  reduce 40
+	RP  reduce 40
+	THEN  reduce 40
+	ELSE  reduce 40
+	FI  reduce 40
+	COMMA  reduce 40
+	IN  reduce 40
+	END  reduce 40
+	SEMICOLON  reduce 40
+	PARALLEL  reduce 40
+	EOF  reduce 40
+
+
+state 98
+	rem_expression : rem_expression REM mult_expression .  (43)
+	mult_expression : mult_expression . TIMES abs_expression  (45)
+	mult_expression : mult_expression . DIV abs_expression  (46)
+
+	TIMES  shift 68
+	DIV  shift 69
+	PLUS  reduce 43
+	MINUS  reduce 43
+	REM  reduce 43
+	CONJ  reduce 43
+	DISJ  reduce 43
+	EQ  reduce 43
+	GT  reduce 43
+	LT  reduce 43
+	RP  reduce 43
+	THEN  reduce 43
+	ELSE  reduce 43
+	FI  reduce 43
+	COMMA  reduce 43
+	IN  reduce 43
+	END  reduce 43
+	SEMICOLON  reduce 43
+	PARALLEL  reduce 43
+	EOF  reduce 43
+
+
+state 99
+	mult_expression : mult_expression TIMES abs_expression .  (45)
+
+	.  reduce 45
+
+
+state 100
+	mult_expression : mult_expression DIV abs_expression .  (46)
+
+	.  reduce 46
+
+
+state 101
+	f_call_expression : f_abstract_expression LP ifte_expression . RP  (61)
+
+	RP  shift 120
+	.  error
+
+
+state 102
+	base_type_parser : LP . typevar_list RP  (23)
+	base_type_parser : LP . func_type_parser RP  (24)
+
+	LP  shift 102
+	TINT  shift 103
+	TBOOL  shift 104
+	TUNIT  shift 105
+	.  error
+
+	func_type_parser  goto 121
+	base_type_parser  goto 122
+	typevar_list  goto 123
+
+
+state 103
+	base_type_parser : TINT .  (22)
+
+	.  reduce 22
+
+
+state 104
+	base_type_parser : TBOOL .  (20)
+
+	.  reduce 20
+
+
+state 105
+	base_type_parser : TUNIT .  (21)
+
+	.  reduce 21
+
+
+state 106
+	simple_def : DEF ID COLON type_parser . EQ disj_expression  (13)
+
+	EQ  shift 124
+	.  error
+
+
+state 107
+	type_parser : func_type_parser .  (14)
+	func_type_parser : func_type_parser . MINUS GT base_type_parser  (16)
+
+	MINUS  shift 125
+	EQ  reduce 14
+	DOT  reduce 14
+
+
+state 108
+	type_parser : base_type_parser .  (15)
+	func_type_parser : base_type_parser . MINUS GT base_type_parser  (17)
+
+	MINUS  shift 126
+	EQ  reduce 15
+	DOT  reduce 15
+
+
+state 109
+	local_def : LOCAL def_parser_temp IN def_parser_temp . END  (11)
+
+	END  shift 127
+	.  error
+
+
+state 110
+	disj_expression : disj_expression . DISJ conj_expression  (26)
+	comma_expression : disj_expression COMMA disj_expression .  (59)
+
+	DISJ  shift 59
+	RP  reduce 59
+	COMMA  reduce 59
+
+
+state 111
+	disj_expression : disj_expression . DISJ conj_expression  (26)
+	comma_expression : comma_expression COMMA disj_expression .  (60)
+
+	DISJ  shift 59
+	RP  reduce 60
+	COMMA  reduce 60
+
+
+state 112
+	disj_expression : disj_expression . DISJ conj_expression  (26)
+	ifte_expression : IF disj_expression THEN disj_expression . ELSE disj_expression FI  (52)
+
+	DISJ  shift 59
+	ELSE  shift 128
+	.  error
+
+
+state 113
+	proj_expression : PROJ LP INT COMMA . INT RP ifte_expression  (54)
+
+	INT  shift 129
+	.  error
+
+
+state 114
+	disj_expression : disj_expression . DISJ conj_expression  (26)
+	let_expression : LET def_parser_temp IN disj_expression . END  (65)
+
+	DISJ  shift 59
+	END  shift 130
+	.  error
+
+
+state 115
+	f_abstract_expression : BACKSLASH ID COLON type_parser . DOT let_expression  (63)
+
+	DOT  shift 131
+	.  error
+
+
+state 116
+	compare_expression : compare_expression EQ GT minus_expression .  (38)
+	minus_expression : minus_expression . MINUS rem_expression  (40)
+	minus_expression : minus_expression . PLUS rem_expression  (41)
+
+	PLUS  shift 65
+	MINUS  shift 66
+	CONJ  reduce 38
+	DISJ  reduce 38
+	EQ  reduce 38
+	GT  reduce 38
+	LT  reduce 38
+	RP  reduce 38
+	THEN  reduce 38
+	ELSE  reduce 38
+	FI  reduce 38
+	COMMA  reduce 38
+	IN  reduce 38
+	END  reduce 38
+	SEMICOLON  reduce 38
+	PARALLEL  reduce 38
+	EOF  reduce 38
+
+
+state 117
+	compare_expression : compare_expression EQ LT minus_expression .  (36)
+	minus_expression : minus_expression . MINUS rem_expression  (40)
+	minus_expression : minus_expression . PLUS rem_expression  (41)
+
+	PLUS  shift 65
+	MINUS  shift 66
+	CONJ  reduce 36
+	DISJ  reduce 36
+	EQ  reduce 36
+	GT  reduce 36
+	LT  reduce 36
+	RP  reduce 36
+	THEN  reduce 36
+	ELSE  reduce 36
+	FI  reduce 36
+	COMMA  reduce 36
+	IN  reduce 36
+	END  reduce 36
+	SEMICOLON  reduce 36
+	PARALLEL  reduce 36
+	EOF  reduce 36
+
+
+state 118
+	compare_expression : compare_expression GT EQ minus_expression .  (37)
+	minus_expression : minus_expression . MINUS rem_expression  (40)
+	minus_expression : minus_expression . PLUS rem_expression  (41)
+
+	PLUS  shift 65
+	MINUS  shift 66
+	CONJ  reduce 37
+	DISJ  reduce 37
+	EQ  reduce 37
+	GT  reduce 37
+	LT  reduce 37
+	RP  reduce 37
+	THEN  reduce 37
+	ELSE  reduce 37
+	FI  reduce 37
+	COMMA  reduce 37
+	IN  reduce 37
+	END  reduce 37
+	SEMICOLON  reduce 37
+	PARALLEL  reduce 37
+	EOF  reduce 37
+
+
+state 119
+	compare_expression : compare_expression LT EQ minus_expression .  (35)
+	minus_expression : minus_expression . MINUS rem_expression  (40)
+	minus_expression : minus_expression . PLUS rem_expression  (41)
+
+	PLUS  shift 65
+	MINUS  shift 66
+	CONJ  reduce 35
+	DISJ  reduce 35
+	EQ  reduce 35
+	GT  reduce 35
+	LT  reduce 35
+	RP  reduce 35
+	THEN  reduce 35
+	ELSE  reduce 35
+	FI  reduce 35
+	COMMA  reduce 35
+	IN  reduce 35
+	END  reduce 35
+	SEMICOLON  reduce 35
+	PARALLEL  reduce 35
+	EOF  reduce 35
+
+
+state 120
+	f_call_expression : f_abstract_expression LP ifte_expression RP .  (61)
+
+	.  reduce 61
+
+
+state 121
+	func_type_parser : func_type_parser . MINUS GT base_type_parser  (16)
+	base_type_parser : LP func_type_parser . RP  (24)
+
+	MINUS  shift 125
+	RP  shift 132
+	.  error
+
+
+state 122
+	func_type_parser : base_type_parser . MINUS GT base_type_parser  (17)
+	typevar_list : base_type_parser . TIMES base_type_parser  (18)
+
+	MINUS  shift 126
+	TIMES  shift 133
+	.  error
+
+
+state 123
+	typevar_list : typevar_list . TIMES base_type_parser  (19)
+	base_type_parser : LP typevar_list . RP  (23)
+
+	TIMES  shift 134
+	RP  shift 135
+	.  error
+
+
+state 124
+	simple_def : DEF ID COLON type_parser EQ . disj_expression  (13)
+
+	INT  shift 12
+	BOOL  shift 13
+	ID  shift 14
+	ABS  shift 15
+	TILDA  shift 16
+	NOT  shift 17
+	LP  shift 18
+	IF  shift 19
+	PROJ  shift 20
+	LET  shift 21
+	BACKSLASH  shift 22
+	.  error
+
+	disj_expression  goto 136
+	conj_expression  goto 25
+	not_expression  goto 26
+	compare_expression  goto 27
+	minus_expression  goto 28
+	rem_expression  goto 29
+	mult_expression  goto 30
+	abs_expression  goto 31
+	neg_expression  goto 32
+	ifte_expression  goto 33
+	proj_expression  goto 34
+	tuple_expression  goto 35
+	f_call_expression  goto 36
+	f_abstract_expression  goto 37
+	let_expression  goto 38
+	constant  goto 39
+
+
+state 125
+	func_type_parser : func_type_parser MINUS . GT base_type_parser  (16)
+
+	GT  shift 137
+	.  error
+
+
+state 126
+	func_type_parser : base_type_parser MINUS . GT base_type_parser  (17)
+
+	GT  shift 138
+	.  error
+
+
+state 127
+	local_def : LOCAL def_parser_temp IN def_parser_temp END .  (11)
+
+	.  reduce 11
+
+
+state 128
+	ifte_expression : IF disj_expression THEN disj_expression ELSE . disj_expression FI  (52)
+
+	INT  shift 12
+	BOOL  shift 13
+	ID  shift 14
+	ABS  shift 15
+	TILDA  shift 16
+	NOT  shift 17
+	LP  shift 18
+	IF  shift 19
+	PROJ  shift 20
+	LET  shift 21
+	BACKSLASH  shift 22
+	.  error
+
+	disj_expression  goto 139
+	conj_expression  goto 25
+	not_expression  goto 26
+	compare_expression  goto 27
+	minus_expression  goto 28
+	rem_expression  goto 29
+	mult_expression  goto 30
+	abs_expression  goto 31
+	neg_expression  goto 32
+	ifte_expression  goto 33
+	proj_expression  goto 34
+	tuple_expression  goto 35
+	f_call_expression  goto 36
+	f_abstract_expression  goto 37
+	let_expression  goto 38
+	constant  goto 39
+
+
+state 129
+	proj_expression : PROJ LP INT COMMA INT . RP ifte_expression  (54)
+
+	RP  shift 140
+	.  error
+
+
+state 130
+	let_expression : LET def_parser_temp IN disj_expression END .  (65)
+
+	.  reduce 65
+
+
+state 131
+	f_abstract_expression : BACKSLASH ID COLON type_parser DOT . let_expression  (63)
+
+	INT  shift 12
+	BOOL  shift 13
+	ID  shift 14
+	LP  shift 141
+	LET  shift 21
+	.  error
+
+	let_expression  goto 142
+	constant  goto 39
+
+
+state 132
+	base_type_parser : LP func_type_parser RP .  (24)
+
+	.  reduce 24
+
+
+state 133
+	typevar_list : base_type_parser TIMES . base_type_parser  (18)
+
+	LP  shift 102
+	TINT  shift 103
+	TBOOL  shift 104
+	TUNIT  shift 105
+	.  error
+
+	base_type_parser  goto 143
+
+
+state 134
+	typevar_list : typevar_list TIMES . base_type_parser  (19)
+
+	LP  shift 102
+	TINT  shift 103
+	TBOOL  shift 104
+	TUNIT  shift 105
+	.  error
+
+	base_type_parser  goto 144
+
+
+state 135
+	base_type_parser : LP typevar_list RP .  (23)
+
+	.  reduce 23
+
+
+state 136
+	simple_def : DEF ID COLON type_parser EQ disj_expression .  (13)
+	disj_expression : disj_expression . DISJ conj_expression  (26)
+
+	DISJ  shift 59
+	IN  reduce 13
+	END  reduce 13
+	SEMICOLON  reduce 13
+	PARALLEL  reduce 13
+	EOF  reduce 13
+
+
+state 137
+	func_type_parser : func_type_parser MINUS GT . base_type_parser  (16)
+
+	LP  shift 102
+	TINT  shift 103
+	TBOOL  shift 104
+	TUNIT  shift 105
+	.  error
+
+	base_type_parser  goto 145
+
+
+state 138
+	func_type_parser : base_type_parser MINUS GT . base_type_parser  (17)
+
+	LP  shift 102
+	TINT  shift 103
+	TBOOL  shift 104
+	TUNIT  shift 105
+	.  error
+
+	base_type_parser  goto 146
+
+
+state 139
+	disj_expression : disj_expression . DISJ conj_expression  (26)
+	ifte_expression : IF disj_expression THEN disj_expression ELSE disj_expression . FI  (52)
+
+	DISJ  shift 59
+	FI  shift 147
+	.  error
+
+
+state 140
+	proj_expression : PROJ LP INT COMMA INT RP . ifte_expression  (54)
+
+	INT  shift 12
+	BOOL  shift 13
+	ID  shift 14
+	LP  shift 18
+	IF  shift 19
+	PROJ  shift 20
+	LET  shift 21
+	BACKSLASH  shift 22
+	.  error
+
+	ifte_expression  goto 148
+	proj_expression  goto 34
+	tuple_expression  goto 35
+	f_call_expression  goto 36
+	f_abstract_expression  goto 37
+	let_expression  goto 38
+	constant  goto 39
+
+
+state 141
+	constant : LP . disj_expression RP  (70)
+
+	INT  shift 12
+	BOOL  shift 13
+	ID  shift 14
+	ABS  shift 15
+	TILDA  shift 16
+	NOT  shift 17
+	LP  shift 18
+	IF  shift 19
+	PROJ  shift 20
+	LET  shift 21
+	BACKSLASH  shift 22
+	.  error
+
+	disj_expression  goto 149
+	conj_expression  goto 25
+	not_expression  goto 26
+	compare_expression  goto 27
+	minus_expression  goto 28
+	rem_expression  goto 29
+	mult_expression  goto 30
+	abs_expression  goto 31
+	neg_expression  goto 32
+	ifte_expression  goto 33
+	proj_expression  goto 34
+	tuple_expression  goto 35
+	f_call_expression  goto 36
+	f_abstract_expression  goto 37
+	let_expression  goto 38
+	constant  goto 39
+
+
+state 142
+	f_abstract_expression : BACKSLASH ID COLON type_parser DOT let_expression .  (63)
+
+	.  reduce 63
+
+
+state 143
+	typevar_list : base_type_parser TIMES base_type_parser .  (18)
+
+	.  reduce 18
+
+
+state 144
+	typevar_list : typevar_list TIMES base_type_parser .  (19)
+
+	.  reduce 19
+
+
+state 145
+	func_type_parser : func_type_parser MINUS GT base_type_parser .  (16)
+
+	.  reduce 16
+
+
+state 146
+	func_type_parser : base_type_parser MINUS GT base_type_parser .  (17)
+
+	.  reduce 17
+
+
+state 147
+	ifte_expression : IF disj_expression THEN disj_expression ELSE disj_expression FI .  (52)
+
+	.  reduce 52
+
+
+state 148
+	proj_expression : PROJ LP INT COMMA INT RP ifte_expression .  (54)
+
+	.  reduce 54
+
+
+state 149
+	disj_expression : disj_expression . DISJ conj_expression  (26)
+	constant : LP disj_expression . RP  (70)
+
+	DISJ  shift 59
+	RP  shift 79
+	.  error
+
+
+42 terminals, 30 nonterminals
+73 grammar rules, 150 states

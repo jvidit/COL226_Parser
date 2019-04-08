@@ -16,7 +16,7 @@
 (*regex used*)
 let whitespace=[' ' '\t']
 let digit = ['0'-'9']                   (*regex for any number with digits 0-9*)
-let integer = ['-']? (['1'-'9']digit* | ['0'])      (*either integer is 0, or a integer with no leading zeros. Sign is optional*)
+let integer = (['1'-'9']digit* | ['0'])      (*either integer is 0, or a integer with no leading zeros. Sign is optional*)
 let lower_letter = ['a'-'z']                (*any string with lower case letters*)
 let upper_letter = ['A'-'Z']
 let letter = ['a'-'z' 'A'-'Z']                (*any string with letters of both cases*)                           
@@ -29,7 +29,6 @@ rule read = parse
    | 'F'              {BOOL(false)}
    | "abs"            {ABS}
    | '~'              {TILDA}
-   | identifier as s  {ID(s)}
    | "not"            {NOT}
    | '+'              {PLUS}
    | '-'              {MINUS}
@@ -49,6 +48,7 @@ rule read = parse
    | "fi"             {FI}
    | ','              {COMMA}
    | "proj"           {PROJ}
+   | identifier as s  {ID(s)}
    | whitespace       {read lexbuf}
    | eof              {EOF}
    | _                {raise Syntax_Error}

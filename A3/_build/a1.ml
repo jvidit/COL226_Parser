@@ -173,8 +173,9 @@ let rec eval (ex:exptree) (rho:(string->value)):value =
           BoolVal(b1) -> (if b1 then a2 else a3)| _ -> raise Type_error)
 | Tuple(n, ex_list) -> TupVal((n,(evalList2 eval rho ex_list)))
 | Project((i, n), ex) -> 
-          (match ex with Tuple(n,ex_list) ->
-              eval (getInd i ex_list) rho | _ -> raise Type_error)
+          (let a1 = (eval ex rho) in
+           match a1 with 
+           TupVal(n,ex_list) -> (getInd i ex_list) | _ -> raise Type_error)
 ;;
 
 
@@ -200,10 +201,10 @@ match ex with
 | LessT(ex1,ex2) -> (compile ex1)@(compile ex2)@[LT]
 | InParen(ex1)  -> (compile ex1)@[PAREN]
 | IfThenElse(ex1,ex2,ex3) -> (compile ex3)@(compile ex2)@(compile ex1)@[IFTE]
-| Tuple(n,ex_list) -> (List.rev (compileList compile ex_list))@[TUPLE(n)]
+| Tuple(n,ex_list) -> ((compileList compile ex_list))@[TUPLE(n)]
 | Project((i,n),ex1) -> (compile ex1)@[PROJ(i,n)]
 ;;
-
+ 
 
 let rec stackmc (stk:answer list) (rho: string->answer) (pgm:opcode list) : answer=
   match pgm with      (*case when pgm is empty*)
@@ -278,12 +279,13 @@ let rec stackmc (stk:answer list) (rho: string->answer) (pgm:opcode list) : answ
                match op1 with Bool(a1) ->                                
                     stackmc  ((if a1 then op2 else op3)::xss) rho xs| _ -> raise Type_error)
 |  TUPLE(n) -> 
-            ( let () = Printf.printf "%d HERE %d. " n (List.length stk)  in 
-              let a1 = (breakList stk n) in
+            ( 
+              let a1 = ((breakList stk n)) in
                 match a1 with (l1,l2) ->
-                    stackmc ((Tup(n,l1))::l2) rho xs| _ -> raise Type_error)
+                    stackmc ((Tup(n,List.rev l1))::l2) rho xs| _ -> raise Type_error)
 |  PROJ(i,n) ->  
-            (match stk with op1::xss ->
+            (
+              match stk with op1::xss ->
                 match op1 with Tup(n,l1) ->
                     stackmc ((getInd i l1)::xss) rho xs| _ -> raise Type_error)
 ;;
