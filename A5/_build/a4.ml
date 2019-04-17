@@ -46,7 +46,7 @@ let rec defBinding g d =
 												 
 	| Local(d1,d2) -> ( defBinding ((defBinding g d1)@g) d2  )
 
-(* hastype : ((string * exptype) list) -> exptree -> exptype -> bool *)
+
 and getType g e = 
 	match e with 
 	Var(s) -> (findType g s)
@@ -72,6 +72,9 @@ and getType g e =
 and hastype g e t = try ( t = (getType g e)   ) with 
 	(Type_error) -> false
 	| Var_Not_found(a) -> false
+;;
+
+let hasCompatibleType g e = (let _ = (getType g e) in true)
 ;;
 
 

@@ -1,4 +1,4 @@
-s(* Dummy implementation of A1 *)
+(* Dummy implementation of A1 *)
 open A0
 exception Not_implemented
 

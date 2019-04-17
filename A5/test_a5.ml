@@ -1,10 +1,10 @@
 #directory "_build";; (* Consider this folder when looking for files *)
-#load "a0.cmo";;
+
 #load "a1.cmo";;
 #load "a2.cmo";;
 #load "a3.cmo";;
 #load "a4.cmo";;
-open A0;;
+
 open A1;;
 open A2;;
 open A3;;
@@ -62,7 +62,7 @@ let rec joinString f l = match l with
 | x::xs ->  (f x) ^ "," ^ (joinString f xs);;
 
 let rec print_answer tr = match tr with
-    Num(a) -> (print_num a)
+    Num(a) -> (string_of_int a)
   | Bool(a) -> (string_of_bool a)
   | Tup(l, a) -> (joinString print_answer a)
 ;;
@@ -79,7 +79,7 @@ let rec print_value tr = match tr with
 
 (* Input is given as value and output is an answer *)
 let rec toAnswer v = match v with
-  NumVal a     -> Num (mk_big a)
+  NumVal a     -> Num (a)
 | BoolVal b    -> Bool b
 | TupVal (n,xs) -> Tup (n, List.map toAnswer xs);;
 
@@ -103,11 +103,40 @@ let rho s = match s with
 
 
 
+
+
 (* Type assumptions as a list of tuples of the form (variable name, type) *)
 let g = [("Y", Tbool)];;
-let e = exp_parser "let def Foo:Tint -> (Tint * Tbool) = \\X:Tint.((X,Y)) in Foo(5) end" rho;;  
-let t = Ttuple([Tint;Tbool]);; 
-assert(hastype g e t);; (* should return true *)
+let e = exp_parser "(if F then (\\X:Tint.(3+X)) else (\\Y:Tint.(40+Y*Y)) fi)((31 div 3)) " rho;;
+(* let e1 = exp_parser "if (6 <= 5) then (3+9) else (5-1) fi" rho;;  *)
+
+
+assert(hasCompatibleType g e);; (* should return true *)
+
+
+let makeClosure (c : closure) =
+    match c with 
+    VCL(Num(a),g) -> string_of_int a
+    | VCL(Bool(a),g) -> string_of_bool a
+    | _ -> "Not_implemented"
+;;
+
+
+let eval_krivine typeTable valTable e = 
+    let _ = assert(hasCompatibleType typeTable e) in
+    print_endline (makeClosure (krivine (CL(e,valTable)) [] ))
+;;
+
+
+let eval_secd typeTable valTable e = 
+   let _ = assert(hasCompatibleType typeTable e) in
+   print_endline (makeClosure (secd [] valTable (compile e) [] ))
+;;
+
+
+eval_krivine g [] e;; 
+
+
 
 
 
@@ -126,6 +155,9 @@ assert(yields g d1 g_dash);;
 
 
 
+(*Test cases*)
+
+(*(if F then (\\X:Tint.(3+X)) else (\\Y:Tint.(40+Y*Y)) fi)((31 div 3)) *)
 
 
 
