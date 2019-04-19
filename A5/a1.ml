@@ -1,4 +1,6 @@
 (* Dummy implementation of A1 *)
+exception Not_implemented_def
+exception Not_implemented_secd
 exception Not_implemented
 exception Var_Not_found of string
 
@@ -54,7 +56,7 @@ and definition =
 (* opcodes of the stack machine (in the same sequence as above) *)
 type opcode = VAR of string | NCONST of int | BCONST of bool | ABS | UNARYMINUS | NOT
   | PLUS | MINUS | MULT | DIV | REM | CONJ | DISJ | EQS | GTE | LTE | GT | LT
-  | PAREN | IFTE of ((opcode list) * (opcode list)) | TUPLE of int | PROJ of int*int | LET | FCALL | CLS of string * (opcode list) | RET
+  | PAREN | IFTE of ((opcode list) * (opcode list)) | TUPLE of int | PROJ of int*int | UNBIND | FCALL | CLS of string * (opcode list) | RET
   | SIMPLEDEF of string | SEQCOMPOSE | PARCOMPOSE | LOCALDEF
 
 (* The type of value returned by the definitional interpreter. *)
@@ -133,8 +135,36 @@ let rec krivine (c: closure) (clist : closure list) : closure =
     | CL(FunctionAbstraction(x,t,e),g) -> (match clist with 
                                             cl::clists ->    (krivine (CL(e, (x,cl)::g )) clists  )   )
     | CL(FunctionCall(e1,e2),g)        -> (krivine (CL(e1,g))  (CL(e2,g)::clist))
+
+
+    | CL(Let(def,ex),g) ->  (krivine (CL(ex,bindDefinition def g)) clist)
     | _ -> raise Not_implemented
+
+and 
+    bindDefinition (def:definition) (g:table) : table =
+      match def with 
+        Simple(s,t,ex) -> (s,CL(ex,g))::g
+      | _ -> raise Not_implemented
 ;;
+
+
+
+
+(* let rec defBinding g d = 
+  match d with
+  Simple(s,t,ex) -> if ((getType g ex)=t) then [(s,t)] else (raise Type_error)
+  | Sequence(exlist)  -> (match exlist with
+              [] -> []
+              | x::xs -> (let g1 = (defBinding g x) in 
+                        ( (defBinding (g1@g) (Sequence(xs))) @ g1)  )   )
+  | Parallel(exlist)  -> (match exlist with
+              [] -> []
+              | x::xs -> (let (g1,gparallel) = (defBinding g x,defBinding g (Parallel(xs))) in
+                      if (intersection_list g1 gparallel) then (raise Mult_def_in_Parallel) else (g1@gparallel) ) )
+                         
+  | Local(d1,d2) -> ( defBinding ((defBinding g d1)@g) d2  )
+
+ *)
 
 
 let rec compileList f l = 
@@ -169,15 +199,12 @@ match ex with
 | FunctionCall(ex1,ex2) -> (compile ex1)@(compile ex2)@[FCALL]
 | FunctionAbstraction(x,t,ex1) -> [CLS(x,(compile ex1)@[RET])]
 
+| Let(d1,ex1) -> (match (compile_def d1) with (l1,l2) -> l1@(compile ex1)@l2)
 
-(* | Tuple(n,ex_list) -> ((compileList compile ex_list))@[TUPLE(n)]
-| Project((i,n),ex1) -> (compile ex1)@[PROJ(i,n)]
-| Let(d1,ex1) -> (compile ex1)@(compile_def d1)@[LET]
-
-and rec compile_def (def:definition):opcode list = 
+and compile_def (def:definition):((opcode list) * (opcode list)) = 
   match def with 
-    Simple(s,t,ex) -> (compile ex)@[SIMPLEDEF(s)]
-    |  Sequence(deflist) -> ( match deflist with 
+    Simple(s,t,ex) -> ((compile ex)@[SIMPLEDEF(s)],[UNBIND])
+    (* |  Sequence(deflist) -> ( match deflist with 
                                 [] -> []
                                 | x::xs -> (compile_Def x)@[SEQCOMPOSE]@(compile_def Sequence(xs))  )
     |  Parallel(deflist) -> ( match deflist with 
@@ -185,7 +212,7 @@ and rec compile_def (def:definition):opcode list =
                                 | x::xs -> (compile_Def x)@[PARCOMPOSE]@(compile_def Sequence(xs))  )
     |  Localdef(d1,d2)  -> (compile_def d1)@(compile_def d2)@[LOCALDEF] *)
 
-| _ -> raise Not_implemented
+    | _ -> raise Not_implemented_def
 ;;
 
 
@@ -196,7 +223,7 @@ let rec secd (stack : closure list) (env : table) (control : opcode list) (dump)
     match (stack, env, control, dump) with 
        
        (s,e,(VAR(x)::xs),d) -> (secd ((lookup e x)::s) e xs d)
-       |  (s,e,NCONST(n)::xs,d) -> (secd (VCL(Num(n),e)::s) e xs d)
+       |  (s,e,NCONST(n)::xs,d) -> let () = (Printf.printf "nconst %d\n" n) in(secd (VCL(Num(n),e)::s) e xs d)
        |  (s,e,BCONST(n)::xs,d) -> (secd (VCL(Bool(n),e)::s) e xs d)
        |  (VCL(Num(a),_)::s,e,ABS::xs,d) -> (secd (VCL(Num(abs a),e)::s) e xs d)
        |  (VCL(Num(a),_)::s,e,UNARYMINUS::xs,d) -> (secd (VCL(Num(-a),e)::s) e xs d)
@@ -216,11 +243,15 @@ let rec secd (stack : closure list) (env : table) (control : opcode list) (dump)
        |  (s,e,PAREN::xs,d)   -> (secd s e xs d)
        |  (VCL(Bool(true),_)::s,e,(IFTE(a1,a2))::xs,d) -> (secd s e (a1@xs) d)
        |  (VCL(Bool(false),_)::s,e,(IFTE(a1,a2))::xs,d) -> (secd s e (a2@xs) d)
+
+       |  (a::s,e,(SIMPLEDEF(x))::xs,d) -> let () = Printf.printf "simdef\n" in (secd s ((x,a)::e) xs d)
+       |  (s,a::e,UNBIND::xs,d) -> (secd s e xs d)
+
        |  (s,e,CLS(x,opl)::xs,d) ->  let () = Printf.printf "fabs\n" in (secd (SecdCL(x,opl,e)::s) e xs d)
        |  (a::((SecdCL(x,opl,e))::s),e1,FCALL::c,d) ->  let () = Printf.printf "fcall\n" in (secd [] ((x,a)::e) opl ((s,e1,c)::d))
        |  (a::s,e,RET::c,(s1,e1,c1)::d) -> (secd (a::s1) e1 c1 d)
        |  (a::s,_,[],_) -> (List.hd stack)
-       |   _ -> raise Not_implemented
+       |   _ -> raise Not_implemented_secd
 ;;
 
 

@@ -107,11 +107,11 @@ let rho s = match s with
 
 (* Type assumptions as a list of tuples of the form (variable name, type) *)
 let g = [("Y", Tbool)];;
-let e = exp_parser "(if F then (\\X:Tint.(3+X)) else (\\Y:Tint.(40+Y*Y)) fi)((31 div 3)) " rho;;
-(* let e1 = exp_parser "if (6 <= 5) then (3+9) else (5-1) fi" rho;;  *)
+let e = exp_parser "let def X:Tint=(3*4) in (X+5) end" rho;;
+(* let e1 = exp_parser "let def func = \\X:Tint.(X*X)(4)" rho;;   *)
 
 
-assert(hasCompatibleType g e);; (* should return true *)
+(* assert(hasCompatibleType g e);; (* should return true *) *)
 
 
 let makeClosure (c : closure) =
@@ -157,8 +157,13 @@ assert(yields g d1 g_dash);;
 
 (*Test cases*)
 
-(*(if F then (\\X:Tint.(3+X)) else (\\Y:Tint.(40+Y*Y)) fi)((31 div 3)) *)
+(*(if F then (\\X:Tint.(3+X)) else (\\Y:Tint.(40+Y*Y)) fi)((31 div 3))    *)
 
+(*let def X:Tint=2 in X+5 end*)
+
+(*let def Func:(Tint -> Tint)  = \\X:Tint.(X*X) in Func(4) end*)
+
+(*let def X:Tint=(3*4) in (X+5) end*)
 
 
 

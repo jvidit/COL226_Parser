@@ -48,11 +48,13 @@ and definition =
   | Parallel of (definition list)
   | Local of definition * definition
 
+
 (* opcodes of the stack machine (in the same sequence as above) *)
 type opcode = VAR of string | NCONST of int | BCONST of bool | ABS | UNARYMINUS | NOT
   | PLUS | MINUS | MULT | DIV | REM | CONJ | DISJ | EQS | GTE | LTE | GT | LT
-  | PAREN | IFTE of ((opcode list) * (opcode list)) | TUPLE of int | PROJ of int*int | LET | FCALL | CLS of string * (opcode list) | RET
+  | PAREN | IFTE of ((opcode list) * (opcode list)) | TUPLE of int | PROJ of int*int | UNBIND | FCALL | CLS of string * (opcode list) | RET
   | SIMPLEDEF of string | SEQCOMPOSE | PARCOMPOSE | LOCALDEF
+
 
 (* The type of value returned by the definitional interpreter. *)
 type value = NumVal of int | BoolVal of bool | TupVal of int * (value list)
