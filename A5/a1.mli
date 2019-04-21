@@ -53,7 +53,7 @@ and definition =
 type opcode = VAR of string | NCONST of int | BCONST of bool | ABS | UNARYMINUS | NOT
   | PLUS | MINUS | MULT | DIV | REM | CONJ | DISJ | EQS | GTE | LTE | GT | LT
   | PAREN | IFTE of ((opcode list) * (opcode list)) | TUPLE of int | PROJ of int*int | UNBIND | FCALL | CLS of string * (opcode list) | RET
-  | SIMPLEDEF of string | SEQCOMPOSE | PARCOMPOSE | LOCALDEF
+  | SIMPLEDEF of string | SEQCOMPOSE of (opcode list) | PARCOMPOSE of (opcode list) | ADDPAR | LOCALDEF
 
 
 (* The type of value returned by the definitional interpreter. *)

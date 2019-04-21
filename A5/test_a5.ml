@@ -107,7 +107,7 @@ let rho s = match s with
 
 (* Type assumptions as a list of tuples of the form (variable name, type) *)
 let g = [("Y", Tbool)];;
-let e = exp_parser "let def X:Tint=(3*4) in (X+5) end" rho;;
+let e = exp_parser "let def F1:(Tint -> Tint) = \\X:Tint.(if (X=1) then 1 else (if (X=2) then 1 else ( F1((X-1)) + F1((X-2)) ) fi) fi) in  F1(10) end  " rho;;
 (* let e1 = exp_parser "let def func = \\X:Tint.(X*X)(4)" rho;;   *)
 
 
@@ -123,13 +123,13 @@ let makeClosure (c : closure) =
 
 
 let eval_krivine typeTable valTable e = 
-    let _ = assert(hasCompatibleType typeTable e) in
+    (* let _ = assert(hasCompatibleType typeTable e) in *)
     print_endline (makeClosure (krivine (CL(e,valTable)) [] ))
 ;;
 
 
 let eval_secd typeTable valTable e = 
-   let _ = assert(hasCompatibleType typeTable e) in
+   (* let _ = assert(hasCompatibleType typeTable e) in *)
    print_endline (makeClosure (secd [] valTable (compile e) [] ))
 ;;
 
@@ -164,6 +164,16 @@ assert(yields g d1 g_dash);;
 (*let def Func:(Tint -> Tint)  = \\X:Tint.(X*X) in Func(4) end*)
 
 (*let def X:Tint=(3*4) in (X+5) end*)
+
+
+(*let def F1:(Tint -> Tint) = \\X:Tint.(3*X) in   
+                       let def F2:(Tint -> Tint) = \\X:Tint.( F1(F1(X)) ) in 
+                                                 F2(5) end end               *)
+
+
+(* Factorial let def F1:(Tint -> Tint) = \\X:Tint.(if (X=1) then 1 else (X*F1((X-1))) fi) in  F1(10) end *)
+
+(* Fibonacci let def F1:(Tint -> Tint) = \\X:Tint.(if (X=1) then 1 else (if (X=2) then 1 else ( F1((X-1)) + F1((X-2)) ) fi) fi) in  F1(10) end *)
 
 
 

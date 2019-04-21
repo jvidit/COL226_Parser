@@ -4,9 +4,106 @@ ocamldep.opt -modules a1.mli > a1.mli.depends # cached
 # Target: a1.cmi, tags: { byte, compile, extension:mli, file:a1.mli, interf, ocaml, quiet }
 ocamlc.opt -c -o a1.cmi a1.mli # cached
 # Target: a1.ml.depends, tags: { extension:ml, file:a1.ml, ocaml, ocamldep, quiet }
-ocamldep.opt -modules a1.ml > a1.ml.depends # cached
+ocamldep.opt -modules a1.ml > a1.ml.depends
 # Target: a1.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:a1.cmo, file:a1.ml, implem, ocaml, quiet }
-ocamlc.opt -c -o a1.cmo a1.ml # cached
+ocamlc.opt -c -o a1.cmo a1.ml
++ ocamlc.opt -c -o a1.cmo a1.ml
+File "a1.ml", line 91, characters 22-124:
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a case that is not matched:
+(VCL ((Bool _|Tup (_, _)), _)|SecdCL (_, _, _))
+File "a1.ml", line 93, characters 27-126:
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a case that is not matched:
+(VCL ((Bool _|Tup (_, _)), _)|SecdCL (_, _, _))
+File "a1.ml", line 97, characters 22-126:
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a case that is not matched:
+(VCL ((Num _|Tup (_, _)), _)|SecdCL (_, _, _))
+File "a1.ml", line 101, characters 26-176:
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a case that is not matched:
+((VCL (Num _, _), VCL ((Bool _|Tup (_, _)), _))|
+(VCL (Num _, _), SecdCL (_, _, _))|(VCL ((Bool _|Tup (_, _)), _), _)|
+(SecdCL (_, _, _), _))
+File "a1.ml", line 103, characters 26-176:
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a case that is not matched:
+((VCL (Num _, _), VCL ((Bool _|Tup (_, _)), _))|
+(VCL (Num _, _), SecdCL (_, _, _))|(VCL ((Bool _|Tup (_, _)), _), _)|
+(SecdCL (_, _, _), _))
+File "a1.ml", line 105, characters 27-177:
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a case that is not matched:
+((VCL (Num _, _), VCL ((Bool _|Tup (_, _)), _))|
+(VCL (Num _, _), SecdCL (_, _, _))|(VCL ((Bool _|Tup (_, _)), _), _)|
+(SecdCL (_, _, _), _))
+File "a1.ml", line 107, characters 26-176:
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a case that is not matched:
+((VCL (Num _, _), VCL ((Bool _|Tup (_, _)), _))|
+(VCL (Num _, _), SecdCL (_, _, _))|(VCL ((Bool _|Tup (_, _)), _), _)|
+(SecdCL (_, _, _), _))
+File "a1.ml", line 109, characters 26-180:
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a case that is not matched:
+((VCL (Num _, _), VCL ((Bool _|Tup (_, _)), _))|
+(VCL (Num _, _), SecdCL (_, _, _))|(VCL ((Bool _|Tup (_, _)), _), _)|
+(SecdCL (_, _, _), _))
+File "a1.ml", line 112, characters 34-190:
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a case that is not matched:
+((VCL (Bool _, _), VCL ((Num _|Tup (_, _)), _))|
+(VCL (Bool _, _), SecdCL (_, _, _))|(VCL ((Num _|Tup (_, _)), _), _)|
+(SecdCL (_, _, _), _))
+File "a1.ml", line 114, characters 34-190:
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a case that is not matched:
+((VCL (Bool _, _), VCL ((Num _|Tup (_, _)), _))|
+(VCL (Bool _, _), SecdCL (_, _, _))|(VCL ((Num _|Tup (_, _)), _), _)|
+(SecdCL (_, _, _), _))
+File "a1.ml", line 118, characters 29-180:
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a case that is not matched:
+((VCL (Num _, _), VCL ((Bool _|Tup (_, _)), _))|
+(VCL (Num _, _), SecdCL (_, _, _))|(VCL ((Bool _|Tup (_, _)), _), _)|
+(SecdCL (_, _, _), _))
+File "a1.ml", line 120, characters 32-184:
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a case that is not matched:
+((VCL (Num _, _), VCL ((Bool _|Tup (_, _)), _))|
+(VCL (Num _, _), SecdCL (_, _, _))|(VCL ((Bool _|Tup (_, _)), _), _)|
+(SecdCL (_, _, _), _))
+File "a1.ml", line 122, characters 29-181:
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a case that is not matched:
+((VCL (Num _, _), VCL ((Bool _|Tup (_, _)), _))|
+(VCL (Num _, _), SecdCL (_, _, _))|(VCL ((Bool _|Tup (_, _)), _), _)|
+(SecdCL (_, _, _), _))
+File "a1.ml", line 124, characters 31-182:
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a case that is not matched:
+((VCL (Num _, _), VCL ((Bool _|Tup (_, _)), _))|
+(VCL (Num _, _), SecdCL (_, _, _))|(VCL ((Bool _|Tup (_, _)), _), _)|
+(SecdCL (_, _, _), _))
+File "a1.ml", line 126, characters 28-179:
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a case that is not matched:
+((VCL (Num _, _), VCL ((Bool _|Tup (_, _)), _))|
+(VCL (Num _, _), SecdCL (_, _, _))|(VCL ((Bool _|Tup (_, _)), _), _)|
+(SecdCL (_, _, _), _))
+File "a1.ml", line 132, characters 36-210:
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a case that is not matched:
+(VCL ((Num _|Tup (_, _)), _)|SecdCL (_, _, _))
+File "a1.ml", line 135, characters 42-164:
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a case that is not matched:
+[]
+File "a1.ml", line 178, characters 0-1182:
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a case that is not matched:
+(Tuple (_, _)|Project (_, _))
 # Target: a2.mll, tags: { extension:mll, file:a2.mll, lexer, ocaml, ocamllex, quiet }
 ocamllex.opt -q a2.mll # cached
 # Target: a2.ml.depends, tags: { extension:ml, file:a2.ml, ocaml, ocamldep, quiet }

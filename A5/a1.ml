@@ -57,7 +57,7 @@ and definition =
 type opcode = VAR of string | NCONST of int | BCONST of bool | ABS | UNARYMINUS | NOT
   | PLUS | MINUS | MULT | DIV | REM | CONJ | DISJ | EQS | GTE | LTE | GT | LT
   | PAREN | IFTE of ((opcode list) * (opcode list)) | TUPLE of int | PROJ of int*int | UNBIND | FCALL | CLS of string * (opcode list) | RET
-  | SIMPLEDEF of string | SEQCOMPOSE | PARCOMPOSE | LOCALDEF
+  | SIMPLEDEF of string | SEQCOMPOSE of (opcode list) | PARCOMPOSE of (opcode list) | ADDPAR | LOCALDEF
 
 (* The type of value returned by the definitional interpreter. *)
 type value = NumVal of int | BoolVal of bool | TupVal of int * (value list)
@@ -143,7 +143,7 @@ let rec krivine (c: closure) (clist : closure list) : closure =
 and 
     bindDefinition (def:definition) (g:table) : table =
       match def with 
-        Simple(s,t,ex) -> (s,CL(ex,g))::g
+        Simple(s,t,ex) ->  (let rec g1 = ((s,CL(ex,g1))::g) in g1)             
       | _ -> raise Not_implemented
 ;;
 
@@ -204,14 +204,6 @@ match ex with
 and compile_def (def:definition):((opcode list) * (opcode list)) = 
   match def with 
     Simple(s,t,ex) -> ((compile ex)@[SIMPLEDEF(s)],[UNBIND])
-    (* |  Sequence(deflist) -> ( match deflist with 
-                                [] -> []
-                                | x::xs -> (compile_Def x)@[SEQCOMPOSE]@(compile_def Sequence(xs))  )
-    |  Parallel(deflist) -> ( match deflist with 
-                                [] -> []
-                                | x::xs -> (compile_Def x)@[PARCOMPOSE]@(compile_def Sequence(xs))  )
-    |  Localdef(d1,d2)  -> (compile_def d1)@(compile_def d2)@[LOCALDEF] *)
-
     | _ -> raise Not_implemented_def
 ;;
 
@@ -223,7 +215,7 @@ let rec secd (stack : closure list) (env : table) (control : opcode list) (dump)
     match (stack, env, control, dump) with 
        
        (s,e,(VAR(x)::xs),d) -> (secd ((lookup e x)::s) e xs d)
-       |  (s,e,NCONST(n)::xs,d) -> let () = (Printf.printf "nconst %d\n" n) in(secd (VCL(Num(n),e)::s) e xs d)
+       |  (s,e,NCONST(n)::xs,d) -> (secd (VCL(Num(n),e)::s) e xs d)
        |  (s,e,BCONST(n)::xs,d) -> (secd (VCL(Bool(n),e)::s) e xs d)
        |  (VCL(Num(a),_)::s,e,ABS::xs,d) -> (secd (VCL(Num(abs a),e)::s) e xs d)
        |  (VCL(Num(a),_)::s,e,UNARYMINUS::xs,d) -> (secd (VCL(Num(-a),e)::s) e xs d)
@@ -241,14 +233,17 @@ let rec secd (stack : closure list) (env : table) (control : opcode list) (dump)
        |  (VCL(Num(a1),_)::(VCL(Num(a2),_)::s),e,LT::xs,d) -> (secd (VCL(Bool(a2 < a1),e)::s) e xs d)
        |  (VCL(Num(a1),_)::(VCL(Num(a2),_)::s),e,LTE::xs,d) -> (secd (VCL(Bool(a2 <= a1),e)::s) e xs d)
        |  (s,e,PAREN::xs,d)   -> (secd s e xs d)
+
        |  (VCL(Bool(true),_)::s,e,(IFTE(a1,a2))::xs,d) -> (secd s e (a1@xs) d)
        |  (VCL(Bool(false),_)::s,e,(IFTE(a1,a2))::xs,d) -> (secd s e (a2@xs) d)
 
-       |  (a::s,e,(SIMPLEDEF(x))::xs,d) -> let () = Printf.printf "simdef\n" in (secd s ((x,a)::e) xs d)
+       |  (CL(a,g)::s,e,(SIMPLEDEF(x))::xs,d) -> (let rec e1 = (x,CL(a,e1))::e in (secd s e1 xs d) )
+       |  (VCL(a,g)::s,e,(SIMPLEDEF(x))::xs,d) -> (let rec e1 = (x,VCL(a,e1))::e in (secd s e1 xs d) )
+       |  (SecdCL(a,fg,g)::s,e,(SIMPLEDEF(x))::xs,d) -> (let rec e1 = (x,SecdCL(a,fg,e1))::e in (secd s e1 xs d) )
        |  (s,a::e,UNBIND::xs,d) -> (secd s e xs d)
 
-       |  (s,e,CLS(x,opl)::xs,d) ->  let () = Printf.printf "fabs\n" in (secd (SecdCL(x,opl,e)::s) e xs d)
-       |  (a::((SecdCL(x,opl,e))::s),e1,FCALL::c,d) ->  let () = Printf.printf "fcall\n" in (secd [] ((x,a)::e) opl ((s,e1,c)::d))
+       |  (s,e,CLS(x,opl)::xs,d) -> (secd (SecdCL(x,opl,e)::s) e xs d)
+       |  (a::((SecdCL(x,opl,e))::s),e1,FCALL::c,d) -> (secd [] ((x,a)::e) opl ((s,e1,c)::d))
        |  (a::s,e,RET::c,(s1,e1,c1)::d) -> (secd (a::s1) e1 c1 d)
        |  (a::s,_,[],_) -> (List.hd stack)
        |   _ -> raise Not_implemented_secd

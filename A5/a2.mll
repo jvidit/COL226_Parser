@@ -14,7 +14,7 @@
 
 
 (*regex used*)
-let whitespace=[' ' '\t']
+let whitespace=[' ' '\t' '\n']
 let digit = ['0'-'9']                   (*regex for any number with digits 0-9*)
 let integer = (['1'-'9']digit* | ['0'])      (*either integer is 0, or a integer with no leading zeros. Sign is optional*)
 let lower_letter = ['a'-'z']                (*any string with lower case letters*)
