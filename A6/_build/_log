@@ -1,0 +1,43 @@
+### Starting build.
+# Target: lexer.mll, tags: { extension:mll, file:lexer.mll, lexer, ocaml, ocamllex, quiet }
+ocamllex.opt -q lexer.mll # cached
+# Target: lexer.ml.depends, tags: { extension:ml, file:lexer.ml, ocaml, ocamldep, quiet }
+ocamldep.opt -modules lexer.ml > lexer.ml.depends # cached
+# Target: parser.mly, tags: { extension:mly, file:parser.mly, infer, ocaml, ocamlyacc, parser, quiet }
+ocamlyacc parser.mly # cached
+# Target: parser.mli.depends, tags: { extension:mli, file:parser.mli, ocaml, ocamldep, quiet }
+ocamldep.opt -modules parser.mli > parser.mli.depends # cached
+# Target: eval.mli.depends, tags: { extension:mli, file:eval.mli, ocaml, ocamldep, quiet }
+ocamldep.opt -modules eval.mli > eval.mli.depends # cached
+# Target: eval.cmi, tags: { byte, compile, extension:mli, file:eval.mli, interf, ocaml, quiet }
+ocamlc.opt -c -o eval.cmi eval.mli # cached
+# Target: parser.cmi, tags: { byte, compile, extension:mli, file:parser.mli, interf, ocaml, quiet }
+ocamlc.opt -c -o parser.cmi parser.mli # cached
+# Target: lexer.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:lexer.cmo, file:lexer.ml, implem, ocaml, quiet }
+ocamlc.opt -c -o lexer.cmo lexer.ml # cached
+# Target: parser.ml.depends, tags: { extension:ml, file:parser.ml, ocaml, ocamldep, quiet }
+ocamldep.opt -modules parser.ml > parser.ml.depends # cached
+# Target: parser.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:parser.cmo, file:parser.ml, implem, ocaml, quiet }
+ocamlc.opt -c -o parser.cmo parser.ml # cached
+# Target: eval.ml.depends, tags: { extension:ml, file:eval.ml, ocaml, ocamldep, quiet }
+ocamldep.opt -modules eval.ml > eval.ml.depends
+# Target: eval.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:eval.cmo, file:eval.ml, implem, ocaml, quiet }
+ocamlc.opt -c -o eval.cmo eval.ml
++ ocamlc.opt -c -o eval.cmo eval.ml
+File "eval.ml", line 68, characters 4-527:
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a case that is not matched:
+(MainFrame (Proc _)|Frame (_, Main _))
+File "eval.ml", line 79, characters 4-69:
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a case that is not matched:
+(Ret|Showpr|Showvr|Let _|Call _)
+File "eval.ml", line 100, characters 4-632:
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a case that is not matched:
+(MainFrame (Proc _)|Frame (_, Main _))
+File "eval.ml", line 144, characters 4-258:
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a case that is not matched:
+(MainFrame (Proc _)|Frame (_, Main _))
+# Compilation successful.
