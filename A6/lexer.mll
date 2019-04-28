@@ -30,6 +30,8 @@ rule read = parse
    | ')'              {RP}
    
    | ','              {COMMA}
+
+   | '~'              {SCOPE}
    
    | "let"            {LET}
    | "ret"            {RET}

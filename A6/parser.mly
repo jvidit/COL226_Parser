@@ -13,7 +13,7 @@
 %token <int> INT
 %token <char> ID
 %token <char> FUNC
-%token EQ LP RP COMMA LET RET PR VR SHOW EOF 
+%token EQ LP RP COMMA LET RET PR VR SHOW SCOPE EOF 
 %start exp
 
 %type <Eval.cmd> exp
@@ -54,14 +54,24 @@ return_func:
 call_func:
     FUNC LP constant COMMA constant RP                           { Call($1,$3,$5)}
 ;   
+                                    
 
 set_var:
-    LET ID EQ constant                          { Let($2,$4) }
+    LET id_constant EQ constant                          { Let($2,$4) }
 ;
 
 constant:
-    ID                                          { Var($1) }      /* To be interpreted as a variable name with string as tokenised */
-    | INT                                       { N($1) }      /* To be interpreted as an integer with its value as tokenised   */
+    id_constant                                         {$1}
+    | num_constant                                      {$1}
+;
+
+id_constant:
+    ID                                          { Var(0,$1) }      /* To be interpreted as a variable name with string as tokenised */
+    | SCOPE ID                                  { Var(1,$2) }
+;
+
+num_constant:
+    INT                                       { N($1) }      /* To be interpreted as an integer with its value as tokenised   */
 ;
 
 

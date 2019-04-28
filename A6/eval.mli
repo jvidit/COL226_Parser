@@ -3,16 +3,14 @@ exception Var_not_found of char;;
 exception Var_not_assigned of char;;
 
 
-type cmd = Var of char
+type cmd = Var of (int * char)
 |  N of int
-|  Let of (char * cmd)
+|  Let of (cmd * cmd)
 |  Call of (char * cmd * cmd)
 |  Ret
 |  Showpr
 |  Showvr
 ;;
-
-
 
 
 type var_val = Num of int | ND ;; (* push a random variable called break onto stack: while dereferencing, delete till break*)

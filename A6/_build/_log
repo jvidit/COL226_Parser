@@ -24,18 +24,20 @@ ocamldep.opt -modules eval.ml > eval.ml.depends
 # Target: eval.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:eval.cmo, file:eval.ml, implem, ocaml, quiet }
 ocamlc.opt -c -o eval.cmo eval.ml
 + ocamlc.opt -c -o eval.cmo eval.ml
-File "eval.ml", line 68, characters 4-527:
+File "eval.ml", line 69, characters 4-652:
 Warning 8: this pattern-matching is not exhaustive.
 Here is an example of a case that is not matched:
-(MainFrame (Proc _)|Frame (_, Main _))
-File "eval.ml", line 79, characters 4-69:
+((Var (_, _), Frame (_, Main _))|(Var (_, _), MainFrame (Proc _))|
+((Ret|Showpr|Showvr|N _|Let _|Call _), _))
+File "eval.ml", line 80, characters 4-80:
 Warning 8: this pattern-matching is not exhaustive.
 Here is an example of a case that is not matched:
 (Ret|Showpr|Showvr|Let _|Call _)
-File "eval.ml", line 100, characters 4-632:
+File "eval.ml", line 101, characters 4-807:
 Warning 8: this pattern-matching is not exhaustive.
 Here is an example of a case that is not matched:
-(MainFrame (Proc _)|Frame (_, Main _))
+((Var (_, _), Frame (_, Main _))|(Var (_, _), MainFrame (Proc _))|
+((Ret|Showpr|Showvr|N _|Let _|Call _), _))
 File "eval.ml", line 144, characters 4-258:
 Warning 8: this pattern-matching is not exhaustive.
 Here is an example of a case that is not matched:

@@ -2,11 +2,12 @@
 exception Var_not_found of char;;
 exception Var_not_assigned of char;;
 exception Not_implemented;;
+exception Invalid_scoping;;
 
 
-type cmd = Var of char
+type cmd = Var of (int * char)
 |  N of int
-|  Let of (char * cmd)
+|  Let of (cmd * cmd)
 |  Call of (char * cmd * cmd)
 |  Ret
 |  Showpr
@@ -64,13 +65,13 @@ let rec find_val (var : char) (gamma : hashtable) : var_val =                   
 ;;
 
 
-let rec lookup (var : char) (fr : frame) : var_val = 
-    match fr with 
-        MainFrame(Main(gamma, proc_list))  ->  (find_val var gamma)
-        |  Frame(parent_frame,Proc(proc_name,gamma,p_list)) -> if (has_defined_var var gamma) then 
-                                                                    (find_val var gamma)           (*retrieving variable value from this particular frame*)
+let rec lookup (var : cmd) (fr : frame) : var_val = 
+    match (var,fr) with 
+        (Var(n,v),MainFrame(Main(gamma, proc_list)))  -> if (n=0) then (find_val v gamma) else (raise Invalid_scoping)
+        |  (Var(n,v),Frame(parent_frame,Proc(proc_name,gamma,p_list))) -> if (has_defined_var v gamma) then 
+                                                                            ( if (n=0) then (find_val v gamma) else (lookup (Var(0,v)) parent_frame)) (*retrieving variable value from this particular frame*)
                                                                                       else
-                                                                    (lookup var parent_frame)   (*retrieving variable value from some ancestor frame*)
+                                                                            (lookup var parent_frame)   (*retrieving variable value from some ancestor frame*)
 ;;
 
 
@@ -78,7 +79,7 @@ let rec lookup (var : char) (fr : frame) : var_val =
 let rec getVal (a : cmd) (fr : frame) : var_val = 
     match a with
       N(n) -> Num(n)
-      | Var(v) -> (lookup v fr)
+      | Var(n,v) -> (lookup (Var(n,v)) fr)
 ;;
 
 
@@ -96,22 +97,21 @@ let rec upd_val (var : char) (vall : var_val) (gamma : hashtable) : hashtable = 
 
 
 
-let rec set_var (var : char) (vall : var_val) (fr : frame) : frame = 
-    match fr with 
-        MainFrame(Main(gamma, proc_list))  ->  MainFrame(Main(upd_val var vall gamma,proc_list))
-        |  Frame(parent_frame,Proc(proc_name,gamma,p_list)) -> if (has_var var gamma) then 
-                                                                    (Frame(parent_frame,Proc(proc_name,upd_val var vall gamma,p_list)))           (*setting variable value in this particular frame*)
+let rec set_var (var : cmd) (vall : var_val) (fr : frame) : frame = 
+    match (var,fr) with 
+        (Var(n,v),MainFrame(Main(gamma, proc_list)))  ->  if (n=0) then (MainFrame(Main(upd_val v vall gamma,proc_list))) else (raise Invalid_scoping)
+        |  (Var(n,v),Frame(parent_frame,Proc(proc_name,gamma,p_list))) -> if (has_var v gamma) then 
+                                                                           ( if (n=0) then ((Frame(parent_frame,Proc(proc_name,upd_val v vall gamma,p_list))) ) else ((Frame(set_var (Var(0,v)) vall parent_frame,Proc(proc_name,gamma,p_list))) ) ) (*setting variable value in this particular frame*)
                                                                                       else
-                                                                    (Frame(set_var var vall parent_frame,Proc(proc_name,gamma,p_list)))                (*setting variable value in some ancestor frame*)
+                                                                           (Frame(set_var var vall parent_frame,Proc(proc_name,gamma,p_list)))                (*setting variable value in some ancestor frame*)
 ;;
-
-
-
 
 
 
 let rec eval (command:cmd) (stack:frame list) = match command with 
     Let(c,vall) -> (set_var c (getVal vall (List.hd stack)) (List.hd stack))::(List.tl stack) 
+    (* | Call(c,e1,e2) ->  *)
+    | Ret -> (List.tl stack)
     | Showvr | Showpr -> stack 
     | _ -> raise Not_implemented
 ;;
@@ -151,7 +151,7 @@ let rec get_all_vars (fr : frame) : string =
 
 let rec show_values (command : cmd) (stack : frame list) : string = match command with
     Showvr ->  (get_all_vars (List.hd stack))
-    | _ -> "\n"
+    | _ -> "Executed\n"
 ;;  
 
 

@@ -11,6 +11,7 @@ type token =
   | PR
   | VR
   | SHOW
+  | SCOPE
   | EOF
 
 val exp :
