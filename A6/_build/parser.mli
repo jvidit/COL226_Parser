@@ -12,6 +12,8 @@ type token =
   | VR
   | SHOW
   | SCOPE
+  | SETUP
+  | STK
   | EOF
 
 val exp :

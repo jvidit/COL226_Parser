@@ -13,7 +13,7 @@
 %token <int> INT
 %token <char> ID
 %token <char> FUNC
-%token EQ LP RP COMMA LET RET PR VR SHOW SCOPE EOF 
+%token EQ LP RP COMMA LET RET PR VR SHOW SCOPE SETUP STK EOF 
 %start exp
 
 %type <Eval.cmd> exp
@@ -35,24 +35,23 @@ exp:
 
 
 exp_temp:
-    return_func                             {$1}
+    RET                                     {Ret}
     |  call_func                            {$1}
     |  set_var                              {$1}
     |  show_exp                             {$1}
+    |  SETUP                                {Setup}
 ;
 
 
 show_exp:
     SHOW PR                                  {Showpr}
     | SHOW VR                                {Showvr}
+    | SHOW STK                               {Showstk}
 ;
 
-return_func:
-    RET                                      { Ret }
-;
 
 call_func:
-    FUNC LP constant COMMA constant RP                           { Call($1,$3,$5)}
+    FUNC LP id_constant COMMA id_constant RP                           { Call($1,$3,$5)}
 ;   
                                     
 

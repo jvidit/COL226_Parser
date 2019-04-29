@@ -23,13 +23,18 @@ let rec loop stack =
 ;;
 
 
+
+
+
+
+
 let temp_main = MainFrame(Main([('a',Num(6));('b',Num(2));('c',ND)],[]));;
 let temp_q = Frame(temp_main,Proc('P',[('z',ND);('w',ND);('x',ND);('b',ND)],[]));;
 
 
 let test_stack = [temp_q;temp_main];;
 
-let rec start () = let () = (loop test_stack) in ()
+let rec start () = let () = (loop []) in ()
 ;;
 
 
@@ -48,9 +53,9 @@ let rec start () = let () = (loop test_stack) in ()
 1. rlwrap ocaml
    #use "main.ml"
    let () = start ();;
-
-2. Each command separated by space
-3. type exit to quit the loop
+2. first command should be setup
+3. Each command separated by space
+4. type exit to quit the loop
 
 *)
 

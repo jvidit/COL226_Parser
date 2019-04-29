@@ -10,6 +10,8 @@ type cmd = Var of (int * char)
 |  Ret
 |  Showpr
 |  Showvr
+|  Showstk
+|  Setup
 ;;
 
 

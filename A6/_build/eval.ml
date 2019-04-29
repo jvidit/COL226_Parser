@@ -3,7 +3,8 @@ exception Var_not_found of char;;
 exception Var_not_assigned of char;;
 exception Not_implemented;;
 exception Invalid_scoping;;
-
+exception Function_not_found of char;;
+exception Implemented_error;;
 
 type cmd = Var of (int * char)
 |  N of int
@@ -12,6 +13,8 @@ type cmd = Var of (int * char)
 |  Ret
 |  Showpr
 |  Showvr
+|  Showstk
+|  Setup
 ;;
 
 
@@ -27,7 +30,6 @@ type proc = Proc of (char * hashtable * proc list) | Main of (hashtable * proc l
 type frame = Frame of (frame * proc) | MainFrame of proc;;                            (*  Frame ( parent * current procedure)  *)
 
 
-
 let proc_V = Proc('V',[('m',ND);('n',ND);('c',ND)],[]);;
 let proc_W = Proc('W',[('m',ND);('p',ND);('j',ND);('h',ND)],[]);;
 let proc_R = Proc('R',[('w',ND);('i',ND);('j',ND);('b',ND)],[proc_V]);;
@@ -39,7 +41,7 @@ let proc_Q = Proc('Q',[('z',ND);('w',ND);('x',ND);('b',ND)],[proc_T;proc_U]);;
 let proc_main = Main([('a',ND);('b',ND);('c',ND)],[proc_P;proc_Q]);;
 
 
-let proc_list = [proc_V;proc_W;proc_R;proc_S;proc_T;proc_U;proc_P;proc_Q;proc_main];;
+let proc_list = [proc_V;proc_W;proc_R;proc_S;proc_T;proc_U;proc_P;proc_Q];;
 
 
 
@@ -108,14 +110,53 @@ let rec set_var (var : cmd) (vall : var_val) (fr : frame) : frame =
 
 
 
-let rec eval (command:cmd) (stack:frame list) = match command with 
+
+(*CALLING FUNCTION*)
+let rec has_func (func_name : char) (plist : proc list) : bool =                            (* checks presence of function in a given function list*)
+    match plist with
+    Proc(pname,_,_)::xs -> if (pname = func_name) then true else (has_func func_name xs)
+    | _ -> false
+;;
+
+
+let rec find_func_template (func_name : char) (plist : proc list) : proc =                  (*finds the function tempelate from proc_list(defined above) *)
+    match plist with
+    Proc(c,vlist,flist)::xs -> if ( c = func_name ) then (Proc(c,vlist,flist)) else (find_func_template func_name xs)
+    | _ -> raise Implemented_error
+;;
+
+  
+let bind_arg (f : proc) (arg1 : var_val) (arg2 : var_val) : proc =                                   (*takes proc tempelate and binds first 2 variables with argument values*) 
+    match f with
+    Proc(pname, (v1,n1)::((v2,n2)::xs) , proc_list) -> (Proc(pname, (v1,arg1)::((v2,arg2)::xs) , proc_list))
+    | _ -> raise Implemented_error
+;; 
+
+
+
+let rec func_call (func_name : char) (arg1 : var_val) (arg2 : var_val) (fr : frame) : frame =                                    (*arg1 and arg2 are of the form Num(_)*)                                                   (*checks presence of a child function in a frame *)   
+    match fr with 
+    Frame(parent_frame,Proc(_,_,plist)) -> if (has_func func_name plist) then (Frame(fr,(bind_arg (find_func_template func_name proc_list) arg1 arg2))) else (func_call func_name arg1 arg2 parent_frame)
+    | MainFrame(Main(_,plist)) -> if (has_func func_name plist) then (Frame(fr,(bind_arg (find_func_template func_name proc_list) arg1 arg2))) else (raise (Function_not_found func_name))
+;;
+
+
+
+
+
+
+
+
+let rec eval (command:cmd) (stack:frame list) : frame list = match command with 
     Let(c,vall) -> (set_var c (getVal vall (List.hd stack)) (List.hd stack))::(List.tl stack) 
-    (* | Call(c,e1,e2) ->  *)
+    | Setup -> [MainFrame(proc_main)]
+    | Call(c,e1,e2) ->  (match (getVal e1 (List.hd stack),getVal e2 (List.hd stack)) with (n1,n2) ->              (* n1 and n2 are function arguments*)
+                                        (func_call c n1 n2 (List.hd stack))::stack)
     | Ret -> (List.tl stack)
-    | Showvr | Showpr -> stack 
+    | Showvr | Showpr | Showstk -> stack 
     | _ -> raise Not_implemented
 ;;
-  (* | Call(func,a,b) -> (match (getVal a,getVal b) with (Num(n1),Num(n2)) -> (stack, gamma)) *)
+
 
 
 
@@ -148,9 +189,36 @@ let rec get_all_vars (fr : frame) : string =
 
 
 
+(* Collect all procedures which can be called *)
+let rec get_procs (plist : proc list) : string = 
+    match plist with
+    [] -> ""
+    | (Proc(c,_,_))::xs -> ((String.make 1 c) ^ " " ^ (get_procs xs))
+;;
+
+
+
+let rec get_all_procs (fr : frame) : string = 
+    match fr with 
+        MainFrame(Main(gamma, proc_list))  ->  (get_procs proc_list)
+        |  Frame(parent_frame,Proc(proc_name,gamma,p_list)) -> ((get_all_procs parent_frame) ^ ((get_procs p_list)))
+;;
+
+
+
+(* Display call stack*)
+let rec get_stack_call (stack : frame list) : string = 
+    match stack with 
+           (MainFrame(Main(gamma,_))::xs)  ->  "Main"
+        |  (Frame(_,Proc(proc_name,_,_))::xs) -> (get_stack_call xs) ^ " -> " ^ (String.make 1 proc_name)
+;;
+
+
 
 let rec show_values (command : cmd) (stack : frame list) : string = match command with
     Showvr ->  (get_all_vars (List.hd stack))
+    | Showpr -> (get_all_procs (List.hd stack))
+    | Showstk -> (get_stack_call stack)
     | _ -> "Executed\n"
 ;;  
 

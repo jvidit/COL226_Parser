@@ -38,6 +38,8 @@ rule read = parse
    | "show"           {SHOW}
    | "procedures"     {PR}
    | "variables"      {VR}
+   | "stack"          {STK}
+   | "setup"          {SETUP}
 
    | upper_letter as c  {FUNC(c)}
    | lower_letter as c  {ID(c)}
