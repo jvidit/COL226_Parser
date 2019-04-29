@@ -217,7 +217,7 @@ let rec get_stack_call (stack : frame list) : string =
 
 let rec show_values (command : cmd) (stack : frame list) : string = match command with
     Showvr ->  (get_all_vars (List.hd stack))
-    | Showpr -> (get_all_procs (List.hd stack))
+    | Showpr -> (get_all_procs (List.hd stack)) ^ "\n"
     | Showstk -> (get_stack_call stack)
     | _ -> "Executed\n"
 ;;  

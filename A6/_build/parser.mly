@@ -51,7 +51,7 @@ show_exp:
 
 
 call_func:
-    FUNC LP id_constant COMMA id_constant RP                           { Call($1,$3,$5)}
+    FUNC LP constant COMMA constant RP                           { Call($1,$3,$5)}
 ;   
                                     
 

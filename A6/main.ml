@@ -68,11 +68,43 @@ let rec start () = let () = (loop []) in ()
 (*Test cases*)
 (* 1. 
 
-
-Add the following to main.ml first
-
-let temp_main = MainFrame(Main([('a',Num(6));('b',Num(2));('c',ND)],[]));;
-let temp_q = Frame(temp_main,Proc('P',[('z',ND);('w',ND);('x',ND);('b',ND)],[]));;
+setup
+show variables
+show procedures
+let a = 3
+let b = 1
+show variables
+show procedures
+show stack
+P(b,6)
+let z = 4
+let a = 9
+let z = ~a
+let ~a = a
+show procedures
+show stack
+P(~a,z)
+show variables
+show stack
+R(1,6)
+show variables
+let i = w
+show stack
+show procedures
+V(a,i)
+show procedures
+Q(9,110)
+show variables
+show stack
+ret
+show variables
+show stack
+ret
+show stack
+ret
+ret
+show variables
+show stack
 
 
 *)
